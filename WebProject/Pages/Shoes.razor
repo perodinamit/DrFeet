@@ -1,0 +1,93 @@
+﻿@page "/shoes"
+
+@using Domain
+@inject Application.Services.ShoeService shoeService
+@inject MudBlazor.ISnackbar snackBar
+@inject IDialogService DialogService
+
+
+
+<MudTable Elevation="5" @ref="@_table" Items="@shoes" RowsPerPage="10" Hover="true" LoadingProgressColor="Color.Info" Filter="new Func<Domain.Entities.Shoe, bool>(Search)" @bind-technology="shoe">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Shoes</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="searchString" Placeholder="Search for shoes..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh hidden>Id</MudTh>
+        <MudTh>Code</MudTh>
+        <MudTh>Name</MudTh>
+        <MudTh>Top</MudTh>
+        <MudTh>Added</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Id" hidden>@context.Id</MudTd>
+            <MudTd DataLabel="Code">@context.Code</MudTd>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="Name">@context.Top.Name</MudTd>
+            <MudTd DataLabel="DateAdded">@context.AddedOn.ToString("dd.MM.yyyy")</MudTd>
+            <MudTd DataLabel="">
+                <MudFab @onclick="@(()=>Delete(context.Id))" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small"></MudFab>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudPagination SelectedChanged="PageChanged" Count="@((_table.GetFilteredItemsCount() + _table.RowsPerPage - 1) / _table.RowsPerPage)" Class="pa-4" />
+        </PagerContent>
+    </MudTable>
+
+
+@code
+    {
+    private string searchString = "";
+    private Domain.Entities.Shoe shoe = new();
+    private IEnumerable<Domain.Entities.Shoe> shoes = new List<Domain.Entities.Shoe>();
+    private MudTable<Domain.Entities.Shoe> _table;
+
+    private void PageChanged(int i)
+    {
+        _table.NavigateTo(i - 1);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var shoeList = await GetShoes();
+        shoes = shoeList.ToList();
+    }
+
+    private async Task RefreshTable()
+    {
+        shoes = await GetShoes();
+        StateHasChanged(); // This line is needed to notify Blazor that the state has changed and it should re-render the component
+    }
+
+    private async Task<List<Domain.Entities.Shoe>> GetShoes()
+    {
+        return await shoeService.GetAllShoes();
+    }
+
+    private bool Search(Domain.Entities.Shoe shoe)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+        {
+            return true;
+        }
+
+        var searchStringLower = searchString.ToLower();
+
+        if (shoe.Name.ToLower().Contains(searchStringLower) || shoe.Code.ToLower().Contains(searchStringLower))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private async void Delete(int id)
+    {
+        await shoeService.Delete(id);
+        snackBar.Add("Shoe deleted", Severity.Success);
+
+        await RefreshTable();
+    }
+
+}
