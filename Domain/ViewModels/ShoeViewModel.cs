@@ -7,5 +7,7 @@
         public string Name { get; set; }
         public DateTime AddedOn { get; set; }
         public string TopName { get; set; }
+
+        public string LiningName { get; set; }
     }
 }
