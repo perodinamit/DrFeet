@@ -8,33 +8,33 @@ using System.Threading.Tasks;
 
 namespace Application.Services
 {
-    public class ApplicationService
+    public class PurposeService
     {
-        private readonly IApplicationRepository applicationRepository;
+        private readonly IPurposeRepository applicationRepository;
 
-        public ApplicationService(IApplicationRepository applicationRepository)
+        public PurposeService(IPurposeRepository applicationRepository)
         {
             this.applicationRepository = applicationRepository;
         }
 
-        public async Task<IEnumerable<Domain.Entities.Application>> GetAllApplications()
+        public async Task<IEnumerable<Domain.Entities.Purpose>> GetAllApplications()
         {
             return await applicationRepository.GetAllAsync();
         }
 
-        public async Task<Domain.Entities.Application> GetApplicationById(int id)
+        public async Task<Domain.Entities.Purpose> GetApplicationById(int id)
         {
             return await applicationRepository.GetByIdAsync(id);
         }
 
-        public async Task<bool> AddApplication(Domain.Entities.Application application)
+        public async Task<bool> AddApplication(Domain.Entities.Purpose application)
         {
             await applicationRepository.AddAsync(application);
 
             return true;
         }
 
-        public async Task<bool> UpdateApplication(Domain.Entities.Application application)
+        public async Task<bool> UpdateApplication(Domain.Entities.Purpose application)
         {
             await applicationRepository.UpdateAsync(application);
 

@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Repository
 {
-    public class ApplicationRepository : GenericRepository<Application>, IApplicationRepository
+    public class PurposeRepository : GenericRepository<Purpose>, IPurposeRepository
     {
-        public ApplicationRepository(ApplicationDbContext context) : base(context)
+        public PurposeRepository(ApplicationDbContext context) : base(context)
         {
         }
     }
