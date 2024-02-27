@@ -1,6 +1,4 @@
-﻿using Domain.Entities;
-using Domain.Repository;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,12 +14,12 @@ namespace Application.Services
         {
             this.liningRepository = liningRepository;
         }
-        public async Task<IEnumerable<Lining>> GetAllLinings()
+        public async Task<IEnumerable<Top>> GetAllLinings()
         {
             return await liningRepository.GetAllAsync();
         }
 
-        public async Task<Lining> GetLiningById(int id)
+        public async Task<Top> GetLiningById(int id)
         {
             return await liningRepository.GetByIdAsync(id);
         }

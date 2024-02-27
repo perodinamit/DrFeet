@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Repository
 {
-    public class SoleRepository : GenericRepository<Sole>, ISoleRepository
+    public class ApplicationRepository : GenericRepository<Application>, IApplicationRepository
     {
-        public SoleRepository(ApplicationDbContext context) : base(context)
+        public ApplicationRepository(ApplicationDbContext context) : base(context)
         {
         }
     }

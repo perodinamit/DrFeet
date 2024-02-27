@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Domain.Repository
 {
-     public interface ISoleRepository : IGenericRepository<Sole>
+    public interface IApplicationRepository : IGenericRepository<Application>
     {
     }
 }

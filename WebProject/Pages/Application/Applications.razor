@@ -1,32 +1,32 @@
-﻿@page "/linings"
+﻿@page "/applications"
 
 @using Domain
-@inject Application.Services.LiningService liningService
+@inject Application.Services.ApplicationService applicationService
 @inject MudBlazor.ISnackbar snackBar
 @inject IDialogService DialogService
 
 <MudCard Elevation="25">
     <MudCardHeader>
         <CardHeaderContent>
-            <MudText Typo="Typo.h6">Add / Edit Linings</MudText>
+            <MudText Typo="Typo.h6">Add / Edit Applications</MudText>
         </CardHeaderContent>
     </MudCardHeader>
     <MudCardContent>
-        <MudTextField @bind-Value="lining.Name" Label="Name" Variant="Variant.Text" Margin="Margin.Normal" Required="true" RequiredError="Name is required!"></MudTextField>
+        <MudTextField @bind-Value="application.Name" Label="Name" Variant="Variant.Text" Margin="Margin.Normal" Required="true" RequiredError="Name is required!"></MudTextField>
         <MudSpacer />
 
-        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Save" Disabled="string.IsNullOrWhiteSpace(lining.Name)">Save</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Save" Disabled="string.IsNullOrWhiteSpace(application.Name)">Save</MudButton>
     </MudCardContent>
 </MudCard>
 <br />
 @* <MudButton @onclick="@(()=>OpenDialog(context.Id))" Variant="Variant.Filled" Color="Color.Primary">
     Open Simple Dialog
 </MudButton> *@
-<MudTable Elevation="5" @ref="@_table" Items="@tops" RowsPerPage="10" Hover="true" LoadingProgressColor="Color.Info" Filter="new Func<Domain.Entities.Lining, bool>(Search)" @bind-technology="lining">
+<MudTable Elevation="5" @ref="@_table" Items="@applications" RowsPerPage="10" Hover="true" LoadingProgressColor="Color.Info" Filter="new Func<Domain.Entities.Application, bool>(Search)" @bind-technology="application">
     <ToolBarContent>
-        <MudText Typo="Typo.h6">Linings</MudText>
+        <MudText Typo="Typo.h6">Applications</MudText>
         <MudSpacer />
-        <MudTextField @bind-Value="searchString" Placeholder="Search for linings..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        <MudTextField @bind-Value="searchString" Placeholder="Search for applications..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
     </ToolBarContent>
     <HeaderContent>
         <MudTh hidden>Id</MudTh>
@@ -53,23 +53,23 @@
 @code 
     {
     private string searchString = "";
-    private Domain.Entities.Lining lining = new();
-    private IEnumerable<Domain.Entities.Lining> linings = new List<Domain.Entities.Lining>();
-    private MudTable<Domain.Entities.Lining> _table;
+    private Domain.Entities.Application application = new();
+    private IEnumerable<Domain.Entities.Application> tops = new List<Domain.Entities.Application>();
+    private MudTable<Domain.Entities.Application> _table;
 
 
 
     private async Task OpenDialog(int id)
     {
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
-        var dialog = DialogService.Show<DeleteLiningModal>("Delete", options);
+        var dialog = DialogService.Show<DeleteApplicationModal>("Delete", options);
 
         var result = await dialog.Result;
 
         if (!result.Cancelled)
         {
-            var response = await liningService.DeleteLining(id);
-            snackBar.Add("Lining deleted", Severity.Success);
+            var response = await applicationService.DeleteApplication(id);
+            snackBar.Add("Application deleted", Severity.Success);
         }
 
         await RefreshTable();
@@ -84,31 +84,31 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var liningList = await GetLinings();
-        linings = liningList.ToList();
+        var applicationList = await GetApplications();
+        applications = applicationList.ToList();
     }
 
     private async Task Save()
     {
-        await liningService.AddLining(lining);
-        lining = new();
-        snackBar.Add("Lining saved", Severity.Success);
+        await applicationService.AddApplication(application);
+        application = new();
+        snackBar.Add("Application saved", Severity.Success);
 
         await RefreshTable();
     }
 
     private async Task RefreshTable()
     {
-        linings = await GetLinings();
+        applications = await GetApplications();
         StateHasChanged(); // This line is needed to notify Blazor that the state has changed and it should re-render the component
     }
 
-    private async Task<IEnumerable<Domain.Entities.Lining>> GetLinings()
+    private async Task<IEnumerable<Domain.Entities.Application>> GetApplications()
     {
-        return await liningService.GetAllLinings();
+        return await applicationService.GetAllApplications();
     }
 
-    private bool Search(Domain.Entities.Lining lining)
+    private bool Search(Domain.Entities.Application application)
     {
         if (string.IsNullOrWhiteSpace(searchString))
         {
@@ -124,8 +124,8 @@
 
     private async void Delete(int id)
     {
-        await liningService.DeleteLining(id);
-        snackBar.Add("Lining deleted", Severity.Success);
+        await applicationService.DeleteApplication(id);
+        snackBar.Add("Application deleted", Severity.Success);
 
         await RefreshTable();
     }
