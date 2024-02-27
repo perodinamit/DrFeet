@@ -1,6 +1,8 @@
 ﻿@page "/colors"
 
 @using Domain
+@using Domain.Entities;
+@using System.Drawing;
 @inject Application.Services.ColorService colorService
 @inject MudBlazor.ISnackbar snackBar
 @inject IDialogService DialogService
@@ -22,7 +24,7 @@
 @* <MudButton @onclick="@(()=>OpenDialog(context.Id))" Variant="Variant.Filled" Color="Color.Primary">
     Open Simple Dialog
 </MudButton> *@
-<MudTable Elevation="5" @ref="@_table" Items="@colors" RowsPerPage="10" Hover="true" LoadingProgressColor="Color.Info" Filter="new Func<Domain.Entities.Lining, bool>(Search)" @bind-technology="color">
+<MudTable Elevation="5" @ref="@_table" Items="@colors" RowsPerPage="10" Hover="true" LoadingProgressColor="Color.Info" Filter="new Func<Domain.Entities.Color, bool>(Search)" @bind-technology="color">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Colors</MudText>
         <MudSpacer />
@@ -53,8 +55,8 @@
 @code 
     {
     private string searchString = "";
-    private Domain.Entities.Top top = new();
-    private IEnumerable<Domain.Entities.Color> tops = new List<Domain.Entities.Color>();
+    private Domain.Entities.Color color = new();
+    private IEnumerable<Domain.Entities.Color> colors = new List<Domain.Entities.Color>();
     private MudTable<Domain.Entities.Color> _table;
 
 
@@ -115,7 +117,7 @@
             return true;
         }
 
-        if (top.Name.Contains(searchString))
+        if (color.Name.Contains(searchString))
         {
             return true;
         }
