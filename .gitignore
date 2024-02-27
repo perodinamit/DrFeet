@@ -361,3 +361,10 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/Application/Services/ApplicationService.cs
+/Domain/Entities/Application.cs
+/Domain/Repository/IApplicationRepository.cs
+/Infrastructure/Repository/ApplicationRepository.cs
+/WebProject/Pages/Application/Applications.razor
+/WebProject/Pages/Application/DeleteApplicationModal.razor
+/.gitignore
