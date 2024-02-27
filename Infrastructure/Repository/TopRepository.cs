@@ -1,4 +1,6 @@
-﻿using Infrastructure.Context;
+﻿using Domain.Entities;
+using Domain.Repository;
+using Infrastructure.Context;
 
 namespace Infrastructure.Repository
 {

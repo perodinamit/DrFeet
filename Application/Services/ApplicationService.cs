@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Domain.Repository;
+using Domain.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,31 +10,31 @@ namespace Application.Services
 {
     public class ApplicationService
     {
-        private readonly IApplicationService applicationRepository;
+        private readonly IApplicationRepository applicationRepository;
 
-        public ApplicationService(IApplicationService applicationRepository)
+        public ApplicationService(IApplicationRepository applicationRepository)
         {
             this.applicationRepository = applicationRepository;
         }
 
-        public async Task<IEnumerable<Application>> GetAllApplications()
+        public async Task<IEnumerable<Domain.Entities.Application>> GetAllApplications()
         {
             return await applicationRepository.GetAllAsync();
         }
 
-        public async Task<Application> GetApplicationById(int id)
+        public async Task<Domain.Entities.Application> GetApplicationById(int id)
         {
             return await applicationRepository.GetByIdAsync(id);
         }
 
-        public async Task<bool> AddApplication(Application application)
+        public async Task<bool> AddApplication(Domain.Entities.Application application)
         {
             await applicationRepository.AddAsync(application);
 
             return true;
         }
 
-        public async Task<bool> UpdateApplication(Application application)
+        public async Task<bool> UpdateApplication(Domain.Entities.Application application)
         {
             await applicationRepository.UpdateAsync(application);
 

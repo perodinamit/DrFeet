@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Domain.Entities;
+using Domain.Repository;
+using Infrastructure.Context;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,3 +15,4 @@ namespace Infrastructure.Repository
         {
         }
     }
+}
