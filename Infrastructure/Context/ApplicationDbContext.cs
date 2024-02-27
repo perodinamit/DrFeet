@@ -16,5 +16,7 @@ namespace Infrastructure.Context
 
         public DbSet<Top> Tops { get; set; }
         public DbSet<Shoe> Shoes { get; set; }
+
+        public DbSet<Lining> Linings { get; set; }
     }
 }
