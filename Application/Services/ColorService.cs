@@ -17,24 +17,24 @@ namespace Application.Services
             this.colorRepository = colorRepository;
         }
 
-        public async Task<IEnumerable<Color>> GetAllColors()
+        public async Task<IEnumerable<ColorType>> GetAllColors()
         {
             return await colorRepository.GetAllAsync();
         }
 
-        public async Task<Color> GetColorById(int id)
+        public async Task<ColorType> GetColorById(int id)
         {
             return await colorRepository.GetByIdAsync(id);
         }
 
-        public async Task<bool> AddColor(Color color)
+        public async Task<bool> AddColor(ColorType color)
         {
             await colorRepository.AddAsync(color);
 
             return true;
         }
 
-        public async Task<bool> UpdateColor(Color color)
+        public async Task<bool> UpdateColor(ColorType color)
         {
             await colorRepository.UpdateAsync(color);
 
