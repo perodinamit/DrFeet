@@ -24,6 +24,7 @@
     Open Simple Dialog
 </MudButton> *@
 <MudTable Elevation="5" @ref="@_table" Items="@colors" RowsPerPage="10" Hover="true" LoadingProgressColor="Color.Info" Filter="new Func<Domain.Entities.ColorType, bool>(Search)" @bind-technology="colorType">
+
     <ToolBarContent>
         <MudText Typo="Typo.h6">Colors</MudText>
         <MudSpacer />
