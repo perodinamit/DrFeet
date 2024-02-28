@@ -14,7 +14,7 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IGenericRepository<Top>, TopRepository>();
 builder.Services.AddScoped<ITopRepository, TopRepository>();
-builder.Services.AddScoped<IGenericRepository<Color>, ColorRepository>();
+builder.Services.AddScoped<IGenericRepository<ColorType>, ColorRepository>();
 builder.Services.AddScoped<IColorRepository, ColorRepository>();
 builder.Services.AddScoped<IGenericRepository<Lining>, LiningRepository>();
 builder.Services.AddScoped<ILiningRepository, LiningRepository>();

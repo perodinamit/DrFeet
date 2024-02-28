@@ -15,7 +15,7 @@
         <MudTextField @bind-Value="purpose.Name" Label="Name" Variant="Variant.Text" Margin="Margin.Normal" Required="true" RequiredError="Name is required!"></MudTextField>
         <MudSpacer />
 
-        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Save" Disabled="string.IsNullOrWhiteSpace(application.Name)">Save</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Save" Disabled="string.IsNullOrWhiteSpace(purpose.Name)">Save</MudButton>
     </MudCardContent>
 </MudCard>
 <br />

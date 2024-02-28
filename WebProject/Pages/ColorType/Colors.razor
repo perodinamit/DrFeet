@@ -2,7 +2,6 @@
 
 @using Domain
 @using Domain.Entities;
-@using System.Drawing;
 @inject Application.Services.ColorService colorService
 @inject MudBlazor.ISnackbar snackBar
 @inject IDialogService DialogService
@@ -14,17 +13,17 @@
         </CardHeaderContent>
     </MudCardHeader>
     <MudCardContent>
-        <MudTextField @bind-Value="color.Name" Label="Name" Variant="Variant.Text" Margin="Margin.Normal" Required="true" RequiredError="Name is required!"></MudTextField>
+        <MudTextField @bind-Value="colorType.Name" Label="Name" Variant="Variant.Text" Margin="Margin.Normal" Required="true" RequiredError="Name is required!"></MudTextField>
         <MudSpacer />
 
-        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Save" Disabled="string.IsNullOrWhiteSpace(color.Name)">Save</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Save" Disabled="string.IsNullOrWhiteSpace(colorType.Name)">Save</MudButton>
     </MudCardContent>
 </MudCard>
 <br />
 @* <MudButton @onclick="@(()=>OpenDialog(context.Id))" Variant="Variant.Filled" Color="Color.Primary">
     Open Simple Dialog
 </MudButton> *@
-<MudTable Elevation="5" @ref="@_table" Items="@colors" RowsPerPage="10" Hover="true" LoadingProgressColor="Color.Info" Filter="new Func<Domain.Entities.Color, bool>(Search)" @bind-technology="color">
+<MudTable Elevation="5" @ref="@_table" Items="@colors" RowsPerPage="10" Hover="true" LoadingProgressColor="Color.Info" Filter="new Func<Domain.Entities.ColorType, bool>(Search)" @bind-technology="colorType">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Colors</MudText>
         <MudSpacer />
@@ -55,9 +54,9 @@
 @code 
     {
     private string searchString = "";
-    private Domain.Entities.Color color = new();
-    private IEnumerable<Domain.Entities.Color> colors = new List<Domain.Entities.Color>();
-    private MudTable<Domain.Entities.Color> _table;
+    private Domain.Entities.ColorType colorType = new();
+    private IEnumerable<Domain.Entities.ColorType> colors = new List<Domain.Entities.ColorType>();
+    private MudTable<Domain.Entities.ColorType> _table;
 
 
 
@@ -92,8 +91,8 @@
 
     private async Task Save()
     {
-        await colorService.AddColor(color);
-        color = new();
+        await colorService.AddColor(colorType);
+        colorType = new();
         snackBar.Add("Color saved", Severity.Success);
 
         await RefreshTable();
@@ -105,19 +104,19 @@
         StateHasChanged(); // This line is needed to notify Blazor that the state has changed and it should re-render the component
     }
 
-    private async Task<IEnumerable<Domain.Entities.Color>> GetColors()
+    private async Task<IEnumerable<Domain.Entities.ColorType>> GetColors()
     {
         return await colorService.GetAllColors();
     }
 
-    private bool Search(Domain.Entities.Color color)
+    private bool Search(Domain.Entities.ColorType colorType)
     {
         if (string.IsNullOrWhiteSpace(searchString))
         {
             return true;
         }
 
-        if (color.Name.Contains(searchString))
+        if (colorType.Name.Contains(searchString))
         {
             return true;
         }
