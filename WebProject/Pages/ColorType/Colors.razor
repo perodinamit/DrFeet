@@ -23,7 +23,8 @@
 @* <MudButton @onclick="@(()=>OpenDialog(context.Id))" Variant="Variant.Filled" Color="Color.Primary">
     Open Simple Dialog
 </MudButton> *@
-<MudTable Elevation="5" @ref="@_table" Items="@colors" RowsPerPage="10" Hover="true" LoadingProgressColor="Color.Info" Filter="new Func<Domain.Entities.ColorType, bool>(Search)" @bind-technology="colorType">
+<MudTable Elevation="5" @ref="@_table" Items="@colors" RowsPerPage="10" Hover="true" LoadingProgressColor="Color.Info" Filter="new Func<Domain.Entities.Color, bool>(Search)" @bind-technology="color">
+
     <ToolBarContent>
         <MudText Typo="Typo.h6">Colors</MudText>
         <MudSpacer />
