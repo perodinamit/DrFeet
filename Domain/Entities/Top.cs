@@ -15,6 +15,6 @@ namespace Domain.Entities
 
         public int ColorId { get; set; }
 
-        public Color Color { get; set; }
+        public ColorType Color { get; set; }
     }
 }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Domain.Repository
 {
-    public interface IColorRepository : IGenericRepository<Color>
+    public interface IColorRepository : IGenericRepository<ColorType>
     {
     }
 }

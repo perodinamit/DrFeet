@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Repository
 {
-    public class ColorRepository : GenericRepository<Color>, IColorRepository
+    public class ColorRepository : GenericRepository<ColorType>, IColorRepository
     {
         public ColorRepository(ApplicationDbContext context) : base(context)
         {
