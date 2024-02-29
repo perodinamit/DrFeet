@@ -10,5 +10,17 @@
 
         public int TopId { get; set; }
         public Top Top { get; set; }
+
+        public int ColorTypeId { get; set; }
+        public ColorType ColorType { get; set; }
+
+        public int LiningId { get; set; }
+        public Lining Lining { get; set;}
+
+        public int PurposeId { get; set; }
+        public Purpose Purpose { get; set; }
+
+        public int SoleId { get; set; }
+        public Sole Sole { get; set;}
     }
 }

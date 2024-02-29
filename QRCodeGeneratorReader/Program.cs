@@ -25,7 +25,7 @@ ZXing.Windows.Compatibility.BarcodeWriter writer = new()
 
 
 var contactInfo = new StringBuilder();
-contactInfo.Append("bosak peder:");
+contactInfo.Append("matej kifloljubac:");
 contactInfo.Append("pokemoni");
 
 
