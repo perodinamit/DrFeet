@@ -13,8 +13,5 @@ namespace Domain.Entities
         public string? Description { get; set; } = string.Empty;
         public DateTime AddedOn { get; set; } = DateTime.Now;
 
-        public int ColorId { get; set; }
-
-        public Color Color { get; set; }
     }
 }

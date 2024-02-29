@@ -27,9 +27,9 @@ namespace Application.Services
                 .ToListAsync();
         }
 
-        public async Task<Shoe> FindShoe(int id)
+        public async Task<Shoe?> FindShoe(int id)
         {
-            return await context.Shoes.FindAsync(id) ?? null;
+            return await context.Shoes.FindAsync(id);
         }
 
         public async Task<bool> Delete(int id)
