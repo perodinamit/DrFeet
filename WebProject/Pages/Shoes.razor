@@ -114,24 +114,20 @@
 
             var base64QRCode = GenerateBase64QRCode(qrContent);
 
-            var parameters = new DialogParameters
-        {
+            var parameters = new DialogParameters<QrCodeDialog>
+            {
             { "QRCode", base64QRCode }
         };
 
             var options = new DialogOptions
                 {
                     Position = DialogPosition.Center,
-                    MaxWidth = MaxWidth.Small,
-                    FullWidth = true
+                    MaxWidth = MaxWidth.Large,
+                    CloseOnEscapeKey = true
                 };
 
-            // var dialog = DialogService.Show<QRCodeDialog>("QR Code", parameters, options);
+            var dialog = DialogService.Show<QrCodeDialog>("QR Code", parameters, options);
 
-            // dialog.OnClose += (result) =>
-            // {
-            //     // Add any logic to handle the closed dialog event
-            // };
         }
         catch (Exception ex)
         {
