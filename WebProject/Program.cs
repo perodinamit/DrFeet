@@ -14,8 +14,20 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IGenericRepository<Top>, TopRepository>();
 builder.Services.AddScoped<ITopRepository, TopRepository>();
+builder.Services.AddScoped<IGenericRepository<ColorType>, ColorRepository>();
+builder.Services.AddScoped<IColorRepository, ColorRepository>();
+builder.Services.AddScoped<IGenericRepository<Lining>, LiningRepository>();
+builder.Services.AddScoped<ILiningRepository, LiningRepository>();
+builder.Services.AddScoped<IGenericRepository<Sole>, SoleRepository>();
+builder.Services.AddScoped<ISoleRepository, SoleRepository>();
+builder.Services.AddScoped<IGenericRepository<Purpose>, PurposeRepository>();
+builder.Services.AddScoped<IPurposeRepository, PurposeRepository>();
 
 builder.Services.AddScoped<TopService>();
+builder.Services.AddScoped<ColorService>();
+builder.Services.AddScoped<LiningService>();
+builder.Services.AddScoped<SoleService>();
+builder.Services.AddScoped<PurposeService>();
 builder.Services.AddScoped<ShoeService>();
 
 

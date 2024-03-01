@@ -1,6 +1,9 @@
-﻿<MudDialog>
+﻿@inject Application.Services.ShoeService shoeService
+
+
+<MudDialog>
     <DialogContent>
-        Dialog Content
+       <MudImage>@QRCode</MudImage>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
@@ -11,7 +14,9 @@
 
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
-
+    [Parameter] public string QRCode { get; set; }
     void Submit() => MudDialog.Close(DialogResult.Ok(true));
     void Cancel() => MudDialog.Cancel();
+
+
 }

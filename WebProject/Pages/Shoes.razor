@@ -18,27 +18,38 @@
         <MudTh>Code</MudTh>
         <MudTh>Name</MudTh>
         <MudTh>Top</MudTh>
+        <MudTh>Lining</MudTh>
+        <MudTh>Sole</MudTh>
+        <MudTh>Purpose</MudTh>
+        <MudTh>Color</MudTh>
         <MudTh>Added</MudTh>
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="Id" hidden>@context.Id</MudTd>
-            <MudTd DataLabel="Code">@context.Code</MudTd>
-            <MudTd DataLabel="Name">@context.Name</MudTd>
-            <MudTd DataLabel="Name">@context.Top.Name</MudTd>
-            <MudTd DataLabel="DateAdded">@context.AddedOn.ToString("dd.MM.yyyy")</MudTd>
-            <MudTd DataLabel="">
-                <MudFab @onclick="@(()=>Delete(context.Id))" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small"></MudFab>
-            </MudTd>
-        </RowTemplate>
-        <PagerContent>
-            <MudPagination SelectedChanged="PageChanged" Count="@((_table.GetFilteredItemsCount() + _table.RowsPerPage - 1) / _table.RowsPerPage)" Class="pa-4" />
-        </PagerContent>
-    </MudTable>
+        <MudTd DataLabel="Code">@context.Code</MudTd>
+        <MudTd DataLabel="Name">@context.Name</MudTd>
+        <MudTd DataLabel="Name">@context.Top.Name</MudTd>
+        <MudTd DataLabel="Name">@context.Lining.Name</MudTd>
+        <MudTd DataLabel="Name">@context.Sole.Name</MudTd>
+        <MudTd DataLabel="Name">@context.Purpose.Name</MudTd>
+        <MudTd DataLabel="Name">@context.ColorType.Name</MudTd>
+        <MudTd DataLabel="DateAdded">@context.AddedOn.ToString("dd.MM.yyyy")</MudTd>
+        <MudTd DataLabel="">
+            <MudFab @onclick="@(()=>GenerateQr(context.Id))" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.QrCode" Size="Size.Small" IconSize="Size.Small"></MudFab>
+        </MudTd>
+        <MudTd DataLabel="">
+            <MudFab @onclick="@(()=>Delete(context.Id))" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small"></MudFab>
+        </MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudPagination SelectedChanged="PageChanged" Count="@((_table.GetFilteredItemsCount() + _table.RowsPerPage - 1) / _table.RowsPerPage)" Class="pa-4" />
+    </PagerContent>
+</MudTable>
 
 
 @code
-    {
+{
     private string searchString = "";
     private Domain.Entities.Shoe shoe = new();
     private IEnumerable<Domain.Entities.Shoe> shoes = new List<Domain.Entities.Shoe>();
@@ -89,5 +100,61 @@
 
         await RefreshTable();
     }
+    #region GenerateQr
+    private async void GenerateQr(int id)
+    {
+        var selectedShoe = shoes.FirstOrDefault(s => s.Id == id);
+
+        if (selectedShoe == null)
+            return;
+
+        try
+        {
+            var qrContent = $"Shoe Code: {selectedShoe.Code}, Name: {selectedShoe.Name}, Top: {selectedShoe.Top?.Name}, Lining: {selectedShoe.Lining?.Name}, Sole: {selectedShoe.Sole?.Name}, Purpose: {selectedShoe.Purpose?.Name}, Color: {selectedShoe.ColorType?.Name}";
+
+            var base64QRCode = GenerateBase64QRCode(qrContent);
+
+            var parameters = new DialogParameters<QrCodeDialog>
+            {
+            { "QRCode", base64QRCode }
+        };
+
+            var options = new DialogOptions
+                {
+                    Position = DialogPosition.Center,
+                    MaxWidth = MaxWidth.Large,
+                    CloseOnEscapeKey = true
+                };
+
+            var dialog = DialogService.Show<QrCodeDialog>("QR Code", parameters, options);
+
+        }
+        catch (Exception ex)
+        {
+            HandleError($"Error generating QR code: {ex.Message}");
+        }
+    }
+    private string GenerateBase64QRCode(string content)
+    {
+        var barcodeWriter = new BarcodeWriterPixelData
+            {
+                Format = BarcodeFormat.QR_CODE,
+                Options = new QrCodeEncodingOptions
+                {
+                    Width = 200,
+                    Height = 200
+                }
+            };
+
+        var pixelData = barcodeWriter.Write(content);
+
+        return $"data:image/png;base64, {Convert.ToBase64String(pixelData.Pixels)}";
+    }
+    private void HandleError(string errorMessage)
+    {
+        snackBar.Add(errorMessage, Severity.Error);
+    }
+    #endregion
+
 
 }

@@ -1,11 +1,5 @@
 ﻿using Domain.Entities;
 using Domain.Repository;
-using Domain.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Infrastructure.Context;
 
@@ -25,8 +19,17 @@ namespace Application.Services
         {
             return await context.Shoes
                 .Include(x => x.Top)
+                .Include(x => x.ColorType)
+                .Include(x => x.Lining)
+                .Include(x => x.Purpose)
+                .Include(x => x.Sole)
                 .AsSplitQuery()
                 .ToListAsync();
+        }
+
+        public async Task<Shoe?> FindShoe(int id)
+        {
+            return await context.Shoes.FindAsync(id);
         }
 
         public async Task<bool> Delete(int id)

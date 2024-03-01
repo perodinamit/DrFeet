@@ -1,0 +1,133 @@
+﻿@page "/soles"
+
+@using Domain
+@inject Application.Services.SoleService soleService
+@inject MudBlazor.ISnackbar snackBar
+@inject IDialogService DialogService
+
+<MudCard Elevation="25">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">Add / Edit Sole Types</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudTextField @bind-Value="sole.Name" Label="Name" Variant="Variant.Text" Margin="Margin.Normal" Required="true" RequiredError="Name is required!"></MudTextField>
+        <MudSpacer />
+
+        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Save" Disabled="string.IsNullOrWhiteSpace(sole.Name)">Save</MudButton>
+    </MudCardContent>
+</MudCard>
+<br />
+@* <MudButton @onclick="@(()=>OpenDialog(context.Id))" Variant="Variant.Filled" Color="Color.Primary">
+    Open Simple Dialog
+</MudButton> *@
+<MudTable Elevation="5" @ref="@_table" Items="@soles" RowsPerPage="10" Hover="true" LoadingProgressColor="Color.Info" Filter="new Func<Domain.Entities.Sole, bool>(Search)" @bind-technology="sole">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Soles</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="searchString" Placeholder="Search for sole types..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh hidden>Id</MudTh>
+        <MudTh>Name</MudTh>
+        <MudTh>Added</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Id" hidden>@context.Id</MudTd>
+        <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="DateAdded">@context.AddedOn.ToString("dd.MM.yyyy")</MudTd>
+        <MudTd DataLabel="">
+                <MudFab @onclick="@(()=>OpenDialog(context.Id))" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small"></MudFab>
+
+        </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudPagination SelectedChanged="PageChanged" Count="@((_table.GetFilteredItemsCount() + _table.RowsPerPage - 1) / _table.RowsPerPage)" Class="pa-4" />
+        </PagerContent>
+</MudTable>
+
+
+
+@code 
+    {
+    private string searchString = "";
+    private Domain.Entities.Sole sole = new();
+    private IEnumerable<Domain.Entities.Sole> soles = new List<Domain.Entities.Sole>();
+    private MudTable<Domain.Entities.Sole> _table;
+
+
+
+    private async Task OpenDialog(int id)
+    {
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
+        var dialog = DialogService.Show<DeleteSoleModal>("Delete", options);
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            var response = await soleService.DeleteSole(id);
+
+            snackBar.Add("Sole type deleted", Severity.Success);
+        }
+
+        await RefreshTable();
+
+
+    }
+
+    private void PageChanged(int i)
+    {
+        _table.NavigateTo(i - 1);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var soleList = await GetSoles();
+        soles = soleList.ToList();
+    }
+
+    private async Task Save()
+    {
+        await soleService.AddSole(sole);
+        sole = new();
+        snackBar.Add("Sole saved", Severity.Success);
+
+        await RefreshTable();
+    }
+
+    private async Task RefreshTable()
+    {
+        soles = await GetSoles();
+        StateHasChanged(); // This line is needed to notify Blazor that the state has changed and it should re-render the component
+    }
+
+    private async Task<IEnumerable<Domain.Entities.Sole>> GetSoles()
+    {
+        return await soleService.GetAllSoles();
+    }
+
+    private bool Search(Domain.Entities.Sole sole)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+        {
+            return true;
+        }
+
+        if (sole.Name.Contains(searchString))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private async void Delete(int id)
+    {
+        await soleService.DeleteSole(id);
+        snackBar.Add("Sole type deleted", Severity.Success);
+
+        await RefreshTable();
+    }
+}
