@@ -23,6 +23,7 @@
     Open Simple Dialog
 </MudButton> *@
 <MudTable Elevation="5" @ref="@_table" Items="@linings" RowsPerPage="10" Hover="true" LoadingProgressColor="Color.Info" Filter="new Func<Domain.Entities.Lining, bool>(Search)" @bind-technology="lining">
+
     <ToolBarContent>
         <MudText Typo="Typo.h6">Linings</MudText>
         <MudSpacer />
@@ -114,6 +115,7 @@
         {
             return true;
         }
+
 
         if (lining.Name.Contains(searchString))
         {
