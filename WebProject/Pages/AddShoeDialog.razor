@@ -1,0 +1,40 @@
+﻿@using Domain.Entities
+@inject Application.Services.ShoeService shoeService
+<MudDialog>
+    <DialogContent>
+        <!-- Add your form controls for adding a new shoe here -->
+        <MudTextField @bind-Value="newShoe.Code" Label="Code" />
+        <MudTextField @bind-Value="newShoe.Name" Label="Name" />
+        <MudTextField @bind-Value="newShoe.Description" Label="Description" />
+
+        <MudSelect @bind-Value="newShoe.TopId" Label="Top" Items="@tops" />
+        <MudSelect @bind-Value="newShoe.LiningId" Label="Lining" Items="@linings" />
+        <MudSelect @bind-Value="newShoe.SoleId" Label="Sole" Items="@soles" />
+        <MudSelect @bind-Value="newShoe.PurposeId" Label="Purpose" Items="@purposes" />
+        <MudSelect @bind-Value="newShoe.ColorTypeId" Label="Color Type" Items="@colorTypes" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Add Shoe</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    public Shoe newShoe = new();
+    private IEnumerable<Domain.Entities.Top> tops; 
+    private IEnumerable<Domain.Entities.Lining> linings; 
+    private IEnumerable<Domain.Entities.Sole> soles; 
+    private IEnumerable<Domain.Entities.Purpose> purposes;
+    private IEnumerable<Domain.Entities.ColorType> colorTypes; 
+
+   async void Submit()
+    {
+        
+        bool success = await shoeService.AddShoe(newShoe);
+        
+        MudDialog.Close(DialogResult.Ok(success));
+    }
+
+    void Cancel() => MudDialog.Cancel();
+}

@@ -1,6 +1,7 @@
 ﻿@page "/shoes"
 
 @using Domain
+@using System.Drawing.Imaging
 @inject Application.Services.ShoeService shoeService
 @inject MudBlazor.ISnackbar snackBar
 @inject IDialogService DialogService
@@ -40,6 +41,12 @@
         </MudTd>
         <MudTd DataLabel="">
             <MudFab @onclick="@(()=>Delete(context.Id))" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small"></MudFab>
+        </MudTd>
+        <MudTd DataLabel="">
+            <MudFab @onclick="@(()=>AddShoe())" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Size="Size.Small" IconSize="Size.Small"></MudFab>
+        </MudTd>
+        <MudTd DataLabel="">
+            <MudFab @onclick="@(()=>ModifyShoe(context.Id))" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small"></MudFab>
         </MudTd>
     </RowTemplate>
     <PagerContent>
@@ -100,6 +107,37 @@
 
         await RefreshTable();
     }
+    private void AddShoe()
+    {
+        var options = new DialogOptions
+            {
+                Position = DialogPosition.Center,
+                MaxWidth = MaxWidth.ExtraLarge,
+                CloseOnEscapeKey = true
+            };
+        var dialog = DialogService.Show<AddShoeDialog>("Add New Shoe", options);
+    }
+
+    private void ModifyShoe(int shoeId)
+    {
+
+        var options = new DialogOptions
+            {
+                Position = DialogPosition.Center,
+                MaxWidth = MaxWidth.ExtraLarge,
+                CloseOnEscapeKey = true
+            };
+
+        var selectedShoe = shoes.FirstOrDefault(s => s.Id == shoeId);
+
+        if (selectedShoe == null)
+            return;
+        var parameters = new DialogParameters<UpdateShoeDialog>
+        {
+            { "ShoeId", shoeId }
+        };
+        var dialog = DialogService.Show<UpdateShoeDialog>("Modify Shoe", parameters, options);
+    }
     #region GenerateQr
     private async void GenerateQr(int id)
     {
@@ -114,8 +152,9 @@
 
             var base64QRCode = GenerateBase64QRCode(qrContent);
 
+
             var parameters = new DialogParameters<QrCodeDialog>
-            {
+        {
             { "QRCode", base64QRCode }
         };
 
@@ -127,7 +166,6 @@
                 };
 
             var dialog = DialogService.Show<QrCodeDialog>("QR Code", parameters, options);
-
         }
         catch (Exception ex)
         {
@@ -136,7 +174,7 @@
     }
     private string GenerateBase64QRCode(string content)
     {
-        var barcodeWriter = new BarcodeWriterPixelData
+        var barcodeWriter = new BarcodeWriter
             {
                 Format = BarcodeFormat.QR_CODE,
                 Options = new QrCodeEncodingOptions
@@ -146,9 +184,14 @@
                 }
             };
 
-        var pixelData = barcodeWriter.Write(content);
+        var bitmap = barcodeWriter.Write(content);
 
-        return $"data:image/png;base64, {Convert.ToBase64String(pixelData.Pixels)}";
+        using (var memoryStream = new MemoryStream())
+        {
+            bitmap.Save(memoryStream, ImageFormat.Png);
+
+            return $"data:image/png;base64, {Convert.ToBase64String(memoryStream.ToArray())}";
+        }
     }
     private void HandleError(string errorMessage)
     {

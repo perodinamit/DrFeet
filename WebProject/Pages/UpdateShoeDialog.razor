@@ -1,0 +1,52 @@
+﻿@using Domain.Entities
+@using Domain.ViewModels
+@inject Application.Services.ShoeService shoeService
+<MudDialog>
+    <DialogContent>
+        <!-- Add your form controls for modifying the shoe here -->
+        <MudTextField @bind-Value="modifiedShoe.Code" Label="Code" />
+        <MudTextField @bind-Value="modifiedShoe.Name" Label="Name" />
+        <MudTextField @bind-Value="modifiedShoe.Description" Label="Description" />
+
+        <MudSelect @bind-Value="modifiedShoe.Top.Name" Label="Top" Items="@tops" />
+        <MudSelect @bind-Value="modifiedShoe.Lining.Name" Label="Lining" Items="@linings" />
+        <MudSelect @bind-Value="modifiedShoe.Sole.Name" Label="Sole" Items="@soles" />
+        <MudSelect @bind-Value="modifiedShoe.Purpose.Name" Label="Purpose" Items="@purposes" />
+        <MudSelect @bind-Value="modifiedShoe.ColorType.Name" Label="Color Type" Items="@colorTypes" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Save Changes</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public int ShoeId { get; set; }
+    private Shoe? modifiedShoe;
+    private IEnumerable<SelectItem> tops; 
+    private IEnumerable<SelectItem> linings;
+    private IEnumerable<SelectItem> soles;
+    private IEnumerable<SelectItem> purposes;
+    private IEnumerable<SelectItem> colorTypes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        modifiedShoe = await shoeService.FindShoe(ShoeId);
+
+        // Populate dropdown options
+        tops = await shoeService.GetDropdownOptions<Domain.Entities.Top>("tops");
+        linings = await shoeService.GetDropdownOptions<Domain.Entities.Lining>("linings");
+        soles = await shoeService.GetDropdownOptions<Domain.Entities.Sole>("soles");
+        purposes = await shoeService.GetDropdownOptions<Domain.Entities.Purpose>("purposes");
+        colorTypes = await shoeService.GetDropdownOptions<Domain.Entities.ColorType>("colortypes");
+    }
+
+    async void Submit()
+    {
+        bool success = await shoeService.ModifyShoe(modifiedShoe);  
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    void Cancel() => MudDialog.Cancel();
+}
