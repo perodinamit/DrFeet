@@ -1,12 +1,18 @@
-﻿namespace Domain.Entities
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Domain.Entities
 {
     public class Shoe
     {
         public int Id { get; set; }
+
+        [Required(ErrorMessage = "Code is required")]
         public string Code { get; set; }
         public string Name { get; set; }
         public string? Description { get; set; } = null;
         public DateTime AddedOn { get; set; } = DateTime.Now;
+
+        public byte[]? ImageData { get; set; }
 
         public int TopId { get; set; }
         public Top? Top { get; set; }
