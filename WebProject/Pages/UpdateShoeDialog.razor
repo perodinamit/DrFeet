@@ -1,11 +1,31 @@
 ﻿@using Domain.Entities
 @using Domain.ViewModels
+
+@using System
+@using System.IO
+@using Microsoft.AspNetCore.Hosting
+@using Microsoft.Extensions.Logging
 @inject Application.Services.ShoeService shoeService
+
 <MudDialog>
     <DialogContent>
+        @if (modifiedShoe?.ImageData is not null)
+        {
+            <MudImage Src="@ImageData" @bind-Value="modifiedShoe.ImageData" Height=200 Width=300 Elevation="25" Class="rounded-lg" />            
+        }
+        <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
+            <ButtonTemplate>
+                <MudFab HtmlTag="label"
+                        Color="Color.Secondary"
+                        StartIcon="@Icons.Material.Filled.Image"
+                        Label="Load picture"
+                        for="@context.Id" />
+            </ButtonTemplate>
+        </MudFileUpload>
+
         <!-- Add your form controls for modifying the shoe here -->
-        <MudTextField @bind-Value="modifiedShoe.Code" Label="Code" />
-        <MudTextField @bind-Value="modifiedShoe.Name" Label="Name" />
+        <MudTextField @bind-Value="modifiedShoe.Code" Required="true" RequiredError="Code is required!" Label="Code" />
+        <MudTextField @bind-Value="modifiedShoe.Name" RequiredError="Name is required!" Label="Name" />
         <MudTextField @bind-Value="modifiedShoe.Description" Label="Description" />
 
         <MudSelect @bind-Value="modifiedShoe.Top.Name" Label="Top" Items="@tops" />
@@ -29,10 +49,17 @@
     private IEnumerable<SelectItem> soles;
     private IEnumerable<SelectItem> purposes;
     private IEnumerable<SelectItem> colorTypes;
+    private string? ImageData;
+    MudDialog form;
 
     protected override async Task OnInitializedAsync()
     {
         modifiedShoe = await shoeService.FindShoe(ShoeId);
+        if (modifiedShoe?.ImageData is not null)
+        {
+            ImageData = "data:image/png;base64, " + Convert.ToBase64String(modifiedShoe.ImageData);          
+        }
+
 
         // Populate dropdown options
         tops = await shoeService.GetDropdownOptions<Domain.Entities.Top>("tops");
@@ -41,6 +68,19 @@
         purposes = await shoeService.GetDropdownOptions<Domain.Entities.Purpose>("purposes");
         colorTypes = await shoeService.GetDropdownOptions<Domain.Entities.ColorType>("colortypes");
     }
+
+
+    private async Task UploadFiles(IBrowserFile file)
+    {
+        byte[] fileContent = new byte[file.Size];
+        await file.OpenReadStream(file.Size).ReadAsync(fileContent, 0, (Int32)file.Size);
+
+        ImageData = "data:image/png;base64, " + Convert.ToBase64String(fileContent);
+
+        modifiedShoe.ImageData = fileContent;
+    }
+
+
 
     async void Submit()
     {

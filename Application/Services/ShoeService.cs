@@ -71,6 +71,7 @@ namespace Application.Services
             existingShoe.SoleId = modifiedShoe.SoleId;
             existingShoe.PurposeId = modifiedShoe.PurposeId;
             existingShoe.ColorTypeId = modifiedShoe.ColorTypeId;
+            existingShoe.ImageData = modifiedShoe.ImageData;
 
             await context.SaveChangesAsync();
 
