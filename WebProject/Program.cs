@@ -29,6 +29,8 @@ builder.Services.AddScoped<LiningService>();
 builder.Services.AddScoped<SoleService>();
 builder.Services.AddScoped<PurposeService>();
 builder.Services.AddScoped<ShoeService>();
+builder.Services.AddScoped<ImageService>();
+
 
 
 builder.Services.AddMudServices();
