@@ -6,6 +6,7 @@
 @using Microsoft.AspNetCore.Hosting
 @using Microsoft.Extensions.Logging
 @inject Application.Services.ShoeService shoeService
+@inject Application.Services.ImageService imageService
 
 <MudDialog>
     <DialogContent>
@@ -72,8 +73,7 @@
 
     private async Task UploadFiles(IBrowserFile file)
     {
-        byte[] fileContent = new byte[file.Size];
-        await file.OpenReadStream(file.Size).ReadAsync(fileContent, 0, (Int32)file.Size);
+        var fileContent = await imageService.UploadImage(file);
 
         ImageData = "data:image/png;base64, " + Convert.ToBase64String(fileContent);
 
