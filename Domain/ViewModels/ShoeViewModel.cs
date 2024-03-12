@@ -11,5 +11,6 @@
         public string? ColorName { get; set; }
         public string? SoleName { get; set; }
         public string? PurposeName { get; set; }
+        public byte[]? ImageData { get; set; }
     }
 }

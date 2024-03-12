@@ -5,6 +5,7 @@ using Infrastructure.Context;
 using Infrastructure.Repository;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -30,8 +31,11 @@ builder.Services.AddScoped<SoleService>();
 builder.Services.AddScoped<PurposeService>();
 builder.Services.AddScoped<ShoeService>();
 builder.Services.AddScoped<ImageService>();
+builder.Services.AddScoped<DocumentPDFService>();
 
 
+QuestPDF.Settings.License = LicenseType.Community;
+QuestPDF.Settings.EnableCaching = true;
 
 builder.Services.AddMudServices();
 

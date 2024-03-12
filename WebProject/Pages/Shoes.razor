@@ -3,6 +3,7 @@
 @using Domain
 @using System.Drawing.Imaging
 @inject Application.Services.ShoeService shoeService
+@inject Application.Services.DocumentPDFService documentPDFService
 @inject MudBlazor.ISnackbar snackBar
 @inject IDialogService DialogService
 
@@ -47,6 +48,9 @@
         </MudTd>
         <MudTd DataLabel="">
             <MudFab @onclick="@(()=>ModifyShoe(context.Id))" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small"></MudFab>
+        </MudTd>
+        <MudTd DataLabel="">
+            <MudFab @onclick="@(()=>ExportToPdf(context.Id))" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PictureAsPdf" Size="Size.Small" IconSize="Size.Small"></MudFab>
         </MudTd>
     </RowTemplate>
     <PagerContent>
@@ -199,5 +203,20 @@
     }
     #endregion
 
+    private async void ExportToPdf(int id)
+    {
+        var selectedShoe = shoes.FirstOrDefault(s => s.Id == id);
+
+        var model = new Domain.ViewModels.ShoeViewModel()
+        {
+            Name = selectedShoe.Name,
+            Code = selectedShoe.Code,
+            ColorName = selectedShoe?.ColorType?.Name,
+            ImageData = selectedShoe?.ImageData
+        };
+
+        await documentPDFService.GeneratePDF(model);
+
+    }
 
 }
