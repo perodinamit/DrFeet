@@ -20,9 +20,6 @@
     </MudCardContent>
 </MudCard>
 <br />
-@* <MudButton @onclick="@(()=>OpenDialog(context.Id))" Variant="Variant.Filled" Color="Color.Primary">
-    Open Simple Dialog
-</MudButton> *@
 <MudTable Elevation="5" @ref="@_table" Items="@colors" RowsPerPage="10" Hover="true" LoadingProgressColor="Color.Info" Filter="new Func<Domain.Entities.ColorType, bool>(Search)" @bind-technology="colorType">
 
     <ToolBarContent>
@@ -41,7 +38,7 @@
         <MudTd DataLabel="Name">@context.Name</MudTd>
             <MudTd DataLabel="DateAdded">@context.AddedOn.ToString("dd.MM.yyyy")</MudTd>
         <MudTd DataLabel="">
-                <MudFab @onclick="@(()=>OpenDialog(context.Id))" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small"></MudFab>
+            <MudFab @onclick="@(()=>OpenDialog(context.Id, context.Name))" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small"></MudFab>
 
         </MudTd>
         </RowTemplate>
@@ -60,35 +57,38 @@
     private MudTable<Domain.Entities.ColorType> _table;
 
 
-
-    private async Task OpenDialog(int id)
+    protected override async Task OnInitializedAsync()
     {
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
-        var dialog = DialogService.Show<DeleteColorModal>("Delete", options);
-
-        var result = await dialog.Result;
-
-        if (!result.Cancelled)
-        {
-            var response = await colorService.DeleteColor(id);
-            snackBar.Add("Color deleted", Severity.Success);
-        }
-
-        await RefreshTable();
-
-
+        var colorList = await GetColors();
+        colors = colorList.ToList();
     }
+
 
     private void PageChanged(int i)
     {
         _table.NavigateTo(i - 1);
     }
 
-    protected override async Task OnInitializedAsync()
+
+    private async Task OpenDialog(int id, string name)
     {
-        var colorList = await GetColors();
-        colors = colorList.ToList();
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
+        var parameters = new DialogParameters { ["Data"] = $"{id.ToString()} - {name}" };
+        var dialog = DialogService.Show<DeleteModal>("Confirm delete", parameters, options);
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            var response = await colorService.DeleteColor(id);
+
+            snackBar.Add($"{nameof(Top)} deleted", Severity.Success);
+        }
+
+
+        await RefreshTable();
     }
+
 
     private async Task Save()
     {
@@ -105,10 +105,12 @@
         StateHasChanged(); // This line is needed to notify Blazor that the state has changed and it should re-render the component
     }
 
+
     private async Task<IEnumerable<Domain.Entities.ColorType>> GetColors()
     {
         return await colorService.GetAllColors();
     }
+
 
     private bool Search(Domain.Entities.ColorType colorType)
     {
@@ -123,6 +125,7 @@
         }
         return false;
     }
+
 
     private async void Delete(int id)
     {

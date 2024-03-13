@@ -1,9 +1,6 @@
-﻿@inject Application.Services.TopService topService
-
-
-<MudDialog>
+﻿<MudDialog>
     <DialogContent>
-        Do you want to delete this top?
+        Do you want to delete this item: @Data?
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
@@ -13,6 +10,7 @@
 
 
 @code {
+    [Parameter] public string Data { get; set; }
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
 
     void Submit() => MudDialog.Close(DialogResult.Ok(true));

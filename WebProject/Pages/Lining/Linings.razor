@@ -19,9 +19,7 @@
     </MudCardContent>
 </MudCard>
 <br />
-@* <MudButton @onclick="@(()=>OpenDialog(context.Id))" Variant="Variant.Filled" Color="Color.Primary">
-    Open Simple Dialog
-</MudButton> *@
+
 <MudTable Elevation="5" @ref="@_table" Items="@linings" RowsPerPage="10" Hover="true" LoadingProgressColor="Color.Info" Filter="new Func<Domain.Entities.Lining, bool>(Search)" @bind-technology="lining">
 
     <ToolBarContent>
@@ -40,7 +38,7 @@
         <MudTd DataLabel="Name">@context.Name</MudTd>
             <MudTd DataLabel="DateAdded">@context.AddedOn.ToString("dd.MM.yyyy")</MudTd>
         <MudTd DataLabel="">
-                <MudFab @onclick="@(()=>OpenDialog(context.Id))" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small"></MudFab>
+            <MudFab @onclick="@(()=>OpenDialog(context.Id, context.Name))" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small"></MudFab>
 
         </MudTd>
         </RowTemplate>
@@ -59,23 +57,10 @@
     private MudTable<Domain.Entities.Lining> _table;
 
 
-
-    private async Task OpenDialog(int id)
+    protected override async Task OnInitializedAsync()
     {
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
-        var dialog = DialogService.Show<DeleteLiningModal>("Delete", options);
-
-        var result = await dialog.Result;
-
-        if (!result.Cancelled)
-        {
-            var response = await liningService.DeleteLining(id);
-            snackBar.Add("Lining deleted", Severity.Success);
-        }
-
-        await RefreshTable();
-
-
+        var liningList = await GetLinings();
+        linings = liningList.ToList();
     }
 
     private void PageChanged(int i)
@@ -83,11 +68,26 @@
         _table.NavigateTo(i - 1);
     }
 
-    protected override async Task OnInitializedAsync()
+
+    private async Task OpenDialog(int id, string name)
     {
-        var liningList = await GetLinings();
-        linings = liningList.ToList();
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
+        var parameters = new DialogParameters { ["Data"] = $"{id.ToString()} - {name}" };
+        var dialog = DialogService.Show<DeleteModal>("Confirm delete", parameters, options);
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            var response = await liningService.DeleteLining(id);
+
+            snackBar.Add($"{nameof(Linings)} deleted", Severity.Success);
+        }
+
+
+        await RefreshTable();
     }
+
 
     private async Task Save()
     {
@@ -98,16 +98,19 @@
         await RefreshTable();
     }
 
+
     private async Task RefreshTable()
     {
         linings = await GetLinings();
         StateHasChanged(); // This line is needed to notify Blazor that the state has changed and it should re-render the component
     }
 
+
     private async Task<IEnumerable<Domain.Entities.Lining>> GetLinings()
     {
         return await liningService.GetAllLinings();
     }
+
 
     private bool Search(Domain.Entities.Lining lining)
     {
@@ -123,6 +126,7 @@
         }
         return false;
     }
+
 
     private async void Delete(int id)
     {
