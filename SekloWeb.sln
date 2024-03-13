@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application", "Application\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebProject", "WebProject\WebProject.csproj", "{EC07EF05-4DC5-4FC0-A195-F90304EF6B02}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QRCodeGeneratorReader", "QRCodeGeneratorReader\QRCodeGeneratorReader.csproj", "{D6FA0DF1-8EDA-494A-9C31-80203F229492}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QRCodeGeneratorReader", "QRCodeGeneratorReader\QRCodeGeneratorReader.csproj", "{D6FA0DF1-8EDA-494A-9C31-80203F229492}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -53,7 +53,7 @@
         </MudTd>
         <MudTd DataLabel="">
             <MudTooltip Text="Delete" Arrow="true" Placement="Placement.Left">
-                <MudFab @onclick="@(()=>Delete(context.Id))" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small"></MudFab>
+                <MudFab @onclick="@(()=>OpenDialog(context.Id, context.Name))" Variant="Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small"></MudFab>
             </MudTooltip>
         </MudTd>
         <MudTd DataLabel="">
@@ -75,16 +75,18 @@
     private IEnumerable<Domain.Entities.Shoe> shoes = new List<Domain.Entities.Shoe>();
     private MudTable<Domain.Entities.Shoe> _table;
 
-    private void PageChanged(int i)
-    {
-        _table.NavigateTo(i - 1);
-    }
-
     protected override async Task OnInitializedAsync()
     {
         var shoeList = await GetShoes();
         shoes = shoeList.ToList();
     }
+
+
+    private void PageChanged(int i)
+    {
+        _table.NavigateTo(i - 1);
+    }
+
 
     private async Task RefreshTable()
     {
@@ -92,10 +94,12 @@
         StateHasChanged(); // This line is needed to notify Blazor that the state has changed and it should re-render the component
     }
 
+
     private async Task<List<Domain.Entities.Shoe>> GetShoes()
     {
         return await shoeService.GetAllShoes();
     }
+
 
     private bool Search(Domain.Entities.Shoe shoe)
     {
@@ -112,6 +116,7 @@
         }
         return false;
     }
+
 
     private async void Delete(int id)
     {
@@ -130,6 +135,7 @@
             };
         var dialog = DialogService.Show<AddShoeDialog>("Add New Shoe", options);
     }
+
 
     private void ModifyShoe(int shoeId)
     {
@@ -187,6 +193,7 @@
             HandleError($"Error generating QR code: {ex.Message}");
         }
     }
+
     private string GenerateBase64QRCode(string content)
     {
         var barcodeWriter = new BarcodeWriter
@@ -208,11 +215,13 @@
             return $"data:image/png;base64, {Convert.ToBase64String(memoryStream.ToArray())}";
         }
     }
+
     private void HandleError(string errorMessage)
     {
         snackBar.Add(errorMessage, Severity.Error);
     }
     #endregion
+
 
     private async void ExportToPdf(int id)
     {
@@ -227,7 +236,25 @@
         };
 
         await documentPDFService.GeneratePDF(model);
+    }
 
+
+    private async Task OpenDialog(int id, string name)
+    {
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
+        var parameters = new DialogParameters { ["Data"] = $"{id.ToString()} - {name}" };
+        var dialog = DialogService.Show<DeleteModal>("Confirm delete", parameters, options);
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            var response = await shoeService.Delete(id);
+            snackBar.Add("Shoe deleted", Severity.Success);
+        }
+
+
+        await RefreshTable();
     }
 
 }

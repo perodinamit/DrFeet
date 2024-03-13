@@ -19,9 +19,7 @@
     </MudCardContent>
 </MudCard>
 <br />
-@* <MudButton @onclick="@(()=>OpenDialog(context.Id))" Variant="Variant.Filled" Color="Color.Primary">
-    Open Simple Dialog
-</MudButton> *@
+
 <MudTable Elevation="5" @ref="@_table" Items="@soles" RowsPerPage="10" Hover="true" LoadingProgressColor="Color.Info" Filter="new Func<Domain.Entities.Sole, bool>(Search)" @bind-technology="sole">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Soles</MudText>
@@ -39,8 +37,7 @@
         <MudTd DataLabel="Name">@context.Name</MudTd>
             <MudTd DataLabel="DateAdded">@context.AddedOn.ToString("dd.MM.yyyy")</MudTd>
         <MudTd DataLabel="">
-                <MudFab @onclick="@(()=>OpenDialog(context.Id))" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small"></MudFab>
-
+            <MudFab @onclick="@(()=>OpenDialog(context.Id, context.Name))" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small"></MudFab>
         </MudTd>
         </RowTemplate>
         <PagerContent>
@@ -58,25 +55,24 @@
     private MudTable<Domain.Entities.Sole> _table;
 
 
-
-    private async Task OpenDialog(int id)
+    private async Task OpenDialog(int id, string name)
     {
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
-        var dialog = DialogService.Show<DeleteSoleModal>("Delete", options);
+        var parameters = new DialogParameters { ["Data"] = $"{id.ToString()} - {name}" };
+        var dialog = DialogService.Show<DeleteModal>("Confirm delete", parameters, options);
 
         var result = await dialog.Result;
 
         if (!result.Cancelled)
         {
             var response = await soleService.DeleteSole(id);
-
-            snackBar.Add("Sole type deleted", Severity.Success);
+            snackBar.Add("Sole deleted", Severity.Success);
         }
 
+
         await RefreshTable();
-
-
     }
+
 
     private void PageChanged(int i)
     {
