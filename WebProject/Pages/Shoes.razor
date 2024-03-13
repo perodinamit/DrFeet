@@ -11,7 +11,11 @@
 
 <MudTable Elevation="5" @ref="@_table" Items="@shoes" RowsPerPage="10" Hover="true" LoadingProgressColor="Color.Info" Filter="new Func<Domain.Entities.Shoe, bool>(Search)" @bind-technology="shoe">
     <ToolBarContent>
+        <MudButton Style="margin-top:20px;" Variant="Variant.Filled" @onclick="@(()=>AddShoe())" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" IconSize="Size.Large">New</MudButton>
+        <MudSpacer />
         <MudText Typo="Typo.h6">Shoes</MudText>
+
+
         <MudSpacer />
         <MudTextField @bind-Value="searchString" Placeholder="Search for shoes..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
     </ToolBarContent>
@@ -38,19 +42,24 @@
         <MudTd DataLabel="Name">@context.ColorType.Name</MudTd>
         <MudTd DataLabel="DateAdded">@context.AddedOn.ToString("dd.MM.yyyy")</MudTd>
         <MudTd DataLabel="">
-            <MudFab @onclick="@(()=>GenerateQr(context.Id))" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.QrCode" Size="Size.Small" IconSize="Size.Small"></MudFab>
+            <MudTooltip Text="Generate QR" Arrow="true" Placement="Placement.Left">
+                <MudFab @onclick="@(()=>GenerateQr(context.Id))" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.QrCode" Size="Size.Small" IconSize="Size.Small"></MudFab>
+            </MudTooltip>
         </MudTd>
         <MudTd DataLabel="">
-            <MudFab @onclick="@(()=>Delete(context.Id))" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small"></MudFab>
+            <MudTooltip Text="Update" Arrow="true" Placement="Placement.Left">
+                <MudFab @onclick="@(()=>ModifyShoe(context.Id))" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small"></MudFab>
+            </MudTooltip>
         </MudTd>
         <MudTd DataLabel="">
-            <MudFab @onclick="@(()=>AddShoe())" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Size="Size.Small" IconSize="Size.Small"></MudFab>
+            <MudTooltip Text="Delete" Arrow="true" Placement="Placement.Left">
+                <MudFab @onclick="@(()=>Delete(context.Id))" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small"></MudFab>
+            </MudTooltip>
         </MudTd>
         <MudTd DataLabel="">
-            <MudFab @onclick="@(()=>ModifyShoe(context.Id))" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small"></MudFab>
-        </MudTd>
-        <MudTd DataLabel="">
-            <MudFab @onclick="@(()=>ExportToPdf(context.Id))" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PictureAsPdf" Size="Size.Small" IconSize="Size.Small"></MudFab>
+            <MudTooltip Text="Export to PDF" Arrow="true" Placement="Placement.Left">
+                <MudFab @onclick="@(()=>ExportToPdf(context.Id))" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PictureAsPdf" Size="Size.Small" IconSize="Size.Small"></MudFab>
+            </MudTooltip>
         </MudTd>
     </RowTemplate>
     <PagerContent>
@@ -142,6 +151,8 @@
         };
         var dialog = DialogService.Show<UpdateShoeDialog>("Modify Shoe", parameters, options);
     }
+
+
     #region GenerateQr
     private async void GenerateQr(int id)
     {

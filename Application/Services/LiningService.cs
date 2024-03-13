@@ -19,7 +19,7 @@ namespace Application.Services
             this.liningRepository = liningRepository;
         }
 
-        public async Task<IEnumerable<Lining>> GetAllLinings()
+        public async Task<List<Lining>> GetAllLinings()
         {
             return await liningRepository.GetAllAsync();
         }

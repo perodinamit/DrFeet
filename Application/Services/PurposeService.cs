@@ -17,7 +17,7 @@ namespace Application.Services
             this.applicationRepository = applicationRepository;
         }
 
-        public async Task<IEnumerable<Domain.Entities.Purpose>> GetAllApplications()
+        public async Task<List<Domain.Entities.Purpose>> GetAllApplications()
         {
             return await applicationRepository.GetAllAsync();
         }

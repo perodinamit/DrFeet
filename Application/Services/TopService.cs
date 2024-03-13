@@ -18,7 +18,7 @@ namespace Application.Services
             this.topRepository = topRepository;
         }
 
-        public async Task<IEnumerable<Top>> GetAllTops()
+        public async Task<List<Top>> GetAllTops()
         {
             return await  topRepository.GetAllAsync();
         }
