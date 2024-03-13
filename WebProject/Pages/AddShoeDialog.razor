@@ -1,5 +1,11 @@
 ﻿@using Domain.Entities
 @inject Application.Services.ShoeService shoeService
+@inject Application.Services.TopService topService
+@inject Application.Services.LiningService liningService
+@inject Application.Services.SoleService soleService
+@inject Application.Services.PurposeService purposeService
+@inject Application.Services.ColorService colorService
+
 <MudDialog>
     <DialogContent>
         <!-- Add your form controls for adding a new shoe here -->
@@ -7,11 +13,47 @@
         <MudTextField @bind-Value="newShoe.Name" Label="Name" />
         <MudTextField @bind-Value="newShoe.Description" Label="Description" />
 
-        <MudSelect @bind-Value="newShoe.TopId" Label="Top" Items="@tops" />
-        <MudSelect @bind-Value="newShoe.LiningId" Label="Lining" Items="@linings" />
-        <MudSelect @bind-Value="newShoe.SoleId" Label="Sole" Items="@soles" />
-        <MudSelect @bind-Value="newShoe.PurposeId" Label="Purpose" Items="@purposes" />
-        <MudSelect @bind-Value="newShoe.ColorTypeId" Label="Color Type" Items="@colorTypes" />
+
+        <MudSelect @bind-Value="newShoe.TopId" Label="Tops"> 
+            <MudSelectItem Value="0" Disabled="true">Select top</MudSelectItem>
+            @foreach (var item in tops)
+            {
+                <MudSelectItem Value="@item.Id">@item.Name</MudSelectItem>
+            }
+        </MudSelect>
+
+        <MudSelect @bind-Value="newShoe.LiningId" Label="Lining">
+            <MudSelectItem Value="0" Disabled="true">Select lining</MudSelectItem>
+            @foreach (var item in linings)
+            {
+                <MudSelectItem Value="@item.Id">@item.Name</MudSelectItem>
+            }
+        </MudSelect>
+
+        <MudSelect @bind-Value="newShoe.SoleId" Label="Sole">
+            <MudSelectItem Value="0" Disabled="true">Select sole</MudSelectItem>
+            @foreach (var item in soles)
+            {
+                <MudSelectItem Value="@item.Id">@item.Name</MudSelectItem>
+            }
+        </MudSelect>
+
+        <MudSelect @bind-Value="newShoe.PurposeId" Label="Purpose">
+            <MudSelectItem Value="0" Disabled="true">Select purpose</MudSelectItem>
+            @foreach (var item in purposes)
+            {
+                <MudSelectItem Value="@item.Id">@item.Name</MudSelectItem>
+            }
+        </MudSelect>
+
+        <MudSelect @bind-Value="newShoe.ColorTypeId" Label="Color Type">
+            <MudSelectItem Value="0" Disabled="true">Select color</MudSelectItem>
+            @foreach (var item in colorTypes)
+            {
+                <MudSelectItem Value="@item.Id">@item.Name</MudSelectItem>
+            }
+        </MudSelect>
+
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
@@ -22,13 +64,23 @@
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
     public Shoe newShoe = new();
-    private IEnumerable<Domain.Entities.Top> tops; 
-    private IEnumerable<Domain.Entities.Lining> linings; 
-    private IEnumerable<Domain.Entities.Sole> soles; 
-    private IEnumerable<Domain.Entities.Purpose> purposes;
-    private IEnumerable<Domain.Entities.ColorType> colorTypes; 
+    private List<Domain.Entities.Top> tops = new();
 
-   async void Submit()
+    private List<Domain.Entities.Lining> linings = new();
+    private List<Domain.Entities.Sole> soles = new();
+    private List<Domain.Entities.Purpose> purposes = new();
+    private List<Domain.Entities.ColorType> colorTypes = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        tops = await topService.GetAllTops();
+        linings = await liningService.GetAllLinings();
+        soles = await soleService.GetAllSoles();
+        purposes = await purposeService.GetAllApplications();
+        colorTypes = await colorService.GetAllColors();
+    }
+
+    async void Submit()
     {
         
         bool success = await shoeService.AddShoe(newShoe);

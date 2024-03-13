@@ -19,7 +19,7 @@ namespace Application.Services
             this.colorRepository = colorRepository;
         }
 
-        public async Task<IEnumerable<ColorType>> GetAllColors()
+        public async Task<List<ColorType>> GetAllColors()
         {
             return await colorRepository.GetAllAsync();
         }

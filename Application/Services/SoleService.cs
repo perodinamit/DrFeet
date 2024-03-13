@@ -17,7 +17,7 @@ namespace Application.Services
             this.soleRepository = soleRepository;
         }
 
-        public async Task<IEnumerable<Sole>> GetAllSoles()
+        public async Task<List<Sole>> GetAllSoles()
         {
             return await soleRepository.GetAllAsync();
         }
