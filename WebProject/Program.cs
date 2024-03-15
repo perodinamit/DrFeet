@@ -6,8 +6,22 @@ using Infrastructure.Repository;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
 using QuestPDF.Infrastructure;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+//builder.Host.UseSerilog((ctx, lc) => lc
+//    .WriteTo.File(
+//        "Logs\\log.txt"
+//        , fileSizeLimitBytes: 10 * 1024 * 1024 // 10MB limit
+//        , restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Error
+//        , rollOnFileSizeLimit: true
+//        , retainedFileCountLimit: 10)
+//    );
+
+builder.Host.UseSerilog((context, configuration) =>
+    configuration.ReadFrom.Configuration(context.Configuration));
+
 var configuration = builder.Configuration;
 // Add services to the container.
 builder.Services.AddRazorPages();
