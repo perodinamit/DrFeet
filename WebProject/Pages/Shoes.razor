@@ -125,7 +125,7 @@
 
         await RefreshTable();
     }
-    private void AddShoe()
+    private async void AddShoe()
     {
         var options = new DialogOptions
             {
@@ -134,10 +134,17 @@
                 CloseOnEscapeKey = true
             };
         var dialog = DialogService.Show<AddShoeDialog>("Add New Shoe", options);
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            await RefreshTable();
+        }
     }
 
 
-    private void ModifyShoe(int shoeId)
+    private async void ModifyShoe(int shoeId)
     {
 
         var options = new DialogOptions
@@ -156,6 +163,13 @@
             { "ShoeId", shoeId }
         };
         var dialog = DialogService.Show<UpdateShoeDialog>("Modify Shoe", parameters, options);
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            await RefreshTable();
+        }
     }
 
 
