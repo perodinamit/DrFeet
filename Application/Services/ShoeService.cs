@@ -80,21 +80,15 @@ namespace Application.Services
 
         public async Task<IEnumerable<SelectItem>> GetDropdownOptions<T>(string propertyName)
         {
-            switch (propertyName.ToLower())
+            return propertyName.ToLower() switch
             {
-                case "tops":
-                    return await GetDropdownOptions<Top>();
-                case "linings":
-                    return await GetDropdownOptions<Lining>();
-                case "soles":
-                    return await GetDropdownOptions<Sole>();
-                case "purposes":
-                    return await GetDropdownOptions<Purpose>();
-                case "colortypes":
-                    return await GetDropdownOptions<ColorType>();
-                default:
-                    throw new ArgumentException($"Invalid property name: {propertyName}");
-            }
+                "tops" => await GetDropdownOptions<Top>(),
+                "linings" => await GetDropdownOptions<Lining>(),
+                "soles" => await GetDropdownOptions<Sole>(),
+                "purposes" => await GetDropdownOptions<Purpose>(),
+                "colortypes" => await GetDropdownOptions<ColorType>(),
+                _ => throw new ArgumentException($"Invalid property name: {propertyName}"),
+            };
         }
 
         private async Task<IEnumerable<SelectItem>> GetDropdownOptions<T>() where T : class
