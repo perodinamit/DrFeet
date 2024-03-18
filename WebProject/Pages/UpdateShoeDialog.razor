@@ -1,12 +1,14 @@
 ﻿@using Domain.Entities
+@using Domain.Validations
 @using Domain.ViewModels
-
+@using FluentValidation
 @using System
 @using System.IO
 @using Microsoft.AspNetCore.Hosting
 @using Microsoft.Extensions.Logging
 @inject Application.Services.ShoeService shoeService
 @inject Application.Services.ImageService imageService
+@inject ISnackbar Snackbar
 
 <MudDialog>
     <DialogContent>
@@ -23,7 +25,6 @@
                         for="@context.Id" />
             </ButtonTemplate>
         </MudFileUpload>
-
         <!-- Add your form controls for modifying the shoe here -->
         <MudTextField @bind-Value="modifiedShoe.Code" Required="true" RequiredError="Code is required!" Label="Code" />
         <MudTextField @bind-Value="modifiedShoe.Name" RequiredError="Name is required!" Label="Name" />
@@ -42,16 +43,15 @@
 </MudDialog>
 
 @code {
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
-    [Parameter] public int ShoeId { get; set; }
+        [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+        [Parameter] public int ShoeId { get; set; }
     private Shoe? modifiedShoe;
     private IEnumerable<SelectItem> tops; 
     private IEnumerable<SelectItem> linings;
     private IEnumerable<SelectItem> soles;
     private IEnumerable<SelectItem> purposes;
     private IEnumerable<SelectItem> colorTypes;
-    private string? ImageData;
-    MudDialog form;
+    private string? ImageData; 
 
     protected override async Task OnInitializedAsync()
     {
@@ -73,11 +73,27 @@
 
     private async Task UploadFiles(IBrowserFile file)
     {
-        var fileContent = await imageService.UploadImage(file);
+        var validator = new ShoeValidator();
+        var result = validator.Validate(modifiedShoe);
 
-        ImageData = "data:image/png;base64, " + Convert.ToBase64String(fileContent);
 
-        modifiedShoe.ImageData = fileContent;
+        if (result.IsValid)
+        {
+            var fileContent = await imageService.UploadImage(file);
+
+            ImageData = "data:image/png;base64, " + Convert.ToBase64String(fileContent);
+
+            modifiedShoe.ImageData = fileContent;
+        }
+        else
+        {
+            var errors = result.Errors.FirstOrDefault()?.ErrorMessage;
+            if (!string.IsNullOrWhiteSpace(errors))
+            {
+                Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+                Snackbar.Add(errors, MudBlazor.Severity.Error);               
+            }
+        }
     }
 
 
