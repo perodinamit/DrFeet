@@ -10,6 +10,7 @@ using MudBlazor.Services;
 using Serilog;
 using WebUI.Areas.Identity;
 using QuestPDF.Infrastructure;
+using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,8 +21,7 @@ builder.Host.UseSerilog((context, configuration) =>
 var configuration = builder.Configuration;
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseSqlServer(connectionString);
@@ -94,7 +94,18 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    await ContextSeed.SeedRolesAsync(userManager, roleManager);
+    
+    if (app.Environment.IsDevelopment())
+    {
+        await context.Database.MigrateAsync();
+    }
+
+    if (!context.Roles.Any())
+    {
+        await ContextSeed.SeedRolesAsync(roleManager);
+
+    }
+
     await DefaultUserSeed.SeedDefaultUserAsync(userManager);
 }
 
