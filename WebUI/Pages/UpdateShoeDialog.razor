@@ -9,7 +9,6 @@
 @inject Application.Services.ShoeService shoeService
 @inject Application.Services.ImageService imageService
 @inject ISnackbar Snackbar
-
 @inject Application.Services.TopService topService
 @inject Application.Services.LiningService liningService
 @inject Application.Services.SoleService soleService
@@ -22,21 +21,24 @@
         {
             <MudImage Src="@ImageData" @bind-Value="modifiedShoe.ImageData" Height=200 Width=300 Elevation="25" Class="rounded-lg" />            
         }
-        <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
-            <ButtonTemplate>
-                <MudFab HtmlTag="label"
-                        Color="Color.Secondary"
-                        StartIcon="@Icons.Material.Filled.Image"
-                        Label="Load picture"
-                        for="@context.Id" />
-            </ButtonTemplate>
-        </MudFileUpload>
+        @if (visibleToAdmin)
+        {
+            <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
+                <ButtonTemplate>
+                    <MudFab HtmlTag="label"
+                            Color="Color.Secondary"
+                            StartIcon="@Icons.Material.Filled.Image"
+                            Label="Load picture"
+                            for="@context.Id" />
+                </ButtonTemplate>
+            </MudFileUpload>
+        }
         <!-- Add your form controls for modifying the shoe here -->
         <MudTextField @bind-Value="modifiedShoe.Code" Required="true" RequiredError="Code is required!" Label="Code" />
         <MudTextField @bind-Value="modifiedShoe.Name" Required="true" RequiredError="Name is required!" Label="Name" />
         <MudTextField @bind-Value="modifiedShoe.Description" Label="Description" />
 
-        <MudSelect @bind-Value="modifiedShoe.TopId" Label="Tops">
+        <MudSelect @bind-Value="modifiedShoe.TopId" Label="Tops" Disabled="!visibleToAdmin">
             <MudSelectItem Value="0" Disabled="true">Select top</MudSelectItem>
             @foreach (var item in tops)
             {
@@ -44,7 +46,7 @@
             }
         </MudSelect>
 
-        <MudSelect @bind-Value="modifiedShoe.LiningId" Label="Lining">
+        <MudSelect @bind-Value="modifiedShoe.LiningId" Label="Lining" Disabled="!visibleToAdmin">
             <MudSelectItem Value="0" Disabled="true">Select lining</MudSelectItem>
             @foreach (var item in linings)
             {
@@ -52,7 +54,7 @@
             }
         </MudSelect>
 
-        <MudSelect @bind-Value="modifiedShoe.SoleId" Label="Sole">
+        <MudSelect @bind-Value="modifiedShoe.SoleId" Label="Sole" Disabled="!visibleToAdmin">
             <MudSelectItem Value="0" Disabled="true">Select sole</MudSelectItem>
             @foreach (var item in soles)
             {
@@ -60,7 +62,7 @@
             }
         </MudSelect>
 
-        <MudSelect @bind-Value="modifiedShoe.PurposeId" Label="Purpose">
+        <MudSelect @bind-Value="modifiedShoe.PurposeId" Label="Purpose" Disabled="!visibleToAdmin">
             <MudSelectItem Value="0" Disabled="true">Select purpose</MudSelectItem>
             @foreach (var item in purposes)
             {
@@ -68,7 +70,7 @@
             }
         </MudSelect>
 
-        <MudSelect @bind-Value="modifiedShoe.ColorTypeId" Label="Color Type">
+        <MudSelect @bind-Value="modifiedShoe.ColorTypeId" Label="Color Type" Disabled="!visibleToAdmin">
             <MudSelectItem Value="0" Disabled="true">Select color</MudSelectItem>
             @foreach (var item in colorTypes)
             {
@@ -78,13 +80,17 @@
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit">Save Changes</MudButton>
+        @if (visibleToAdmin)
+        {
+            <MudButton Color="Color.Primary" OnClick="Submit">Save Changes</MudButton>
+        }
     </DialogActions>
 </MudDialog>
 
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
     [Parameter] public int ShoeId { get; set; }
+    [Parameter] public bool visibleToAdmin { get; set; } = false;
     private Shoe? modifiedShoe;
     private List<Domain.Entities.Top> tops = new();
     private List<Domain.Entities.Lining> linings = new();
@@ -92,6 +98,7 @@
     private List<Domain.Entities.Purpose> purposes = new();
     private List<Domain.Entities.ColorType> colorTypes = new();
     private string? ImageData; 
+    private Task<AuthenticationState>? authenticationState { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
