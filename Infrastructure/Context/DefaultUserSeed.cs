@@ -25,7 +25,6 @@ namespace Infrastructure.Context
                 await userManager.CreateAsync(user, adminPsw);
 
                 await userManager.AddToRoleAsync(user, Roles.Admin.ToString());
-                await userManager.AddToRoleAsync(user, Roles.SuperAdmin.ToString());
             }
         }
     }
