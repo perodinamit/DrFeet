@@ -1,0 +1,138 @@
+﻿@page "/colors"
+
+@using Domain
+@using Domain.Entities;
+@using WebUI.Pages.Shared
+@inject Application.Services.ColorService colorService
+@inject MudBlazor.ISnackbar snackBar
+@inject IDialogService DialogService
+
+<MudCard Elevation="25">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">Add / Edit Colors</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudTextField @bind-Value="colorType.Name" Label="Name" Variant="Variant.Text" Margin="Margin.Normal" Required="true" RequiredError="Name is required!"></MudTextField>
+        <MudSpacer />
+
+        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Save" Disabled="string.IsNullOrWhiteSpace(colorType.Name)">Save</MudButton>
+    </MudCardContent>
+</MudCard>
+<br />
+<MudTable Elevation="5" @ref="@_table" Items="@colors" RowsPerPage="10" Hover="true" LoadingProgressColor="Color.Info" Filter="new Func<Domain.Entities.ColorType, bool>(Search)" @bind-technology="colorType">
+
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Colors</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="searchString" Placeholder="Search for linings..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh hidden>Id</MudTh>
+        <MudTh>Name</MudTh>
+        <MudTh>Added</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Id" hidden>@context.Id</MudTd>
+        <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="DateAdded">@context.AddedOn.ToString("dd.MM.yyyy")</MudTd>
+        <MudTd DataLabel="">
+            <MudFab @onclick="@(()=>OpenDialog(context.Id, context.Name))" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small"></MudFab>
+
+        </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudPagination SelectedChanged="PageChanged" Count="@((_table.GetFilteredItemsCount() + _table.RowsPerPage - 1) / _table.RowsPerPage)" Class="pa-4" />
+        </PagerContent>
+</MudTable>
+
+
+
+@code 
+    {
+    private string searchString = "";
+    private Domain.Entities.ColorType colorType = new();
+    private IEnumerable<Domain.Entities.ColorType> colors = new List<Domain.Entities.ColorType>();
+    private MudTable<Domain.Entities.ColorType> _table;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var colorList = await GetColors();
+        colors = colorList.ToList();
+    }
+
+
+    private void PageChanged(int i)
+    {
+        _table.NavigateTo(i - 1);
+    }
+
+
+    private async Task OpenDialog(int id, string name)
+    {
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
+        var parameters = new DialogParameters { ["Data"] = $"{id.ToString()} - {name}" };
+        var dialog = DialogService.Show<DeleteModal>("Confirm delete", parameters, options);
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            var response = await colorService.DeleteColor(id);
+
+            snackBar.Add($"{nameof(Top)} deleted", Severity.Success);
+        }
+
+
+        await RefreshTable();
+    }
+
+
+    private async Task Save()
+    {
+        await colorService.AddColor(colorType);
+        colorType = new();
+        snackBar.Add("Color saved", Severity.Success);
+
+        await RefreshTable();
+    }
+
+    private async Task RefreshTable()
+    {
+        colors = await GetColors();
+        StateHasChanged(); // This line is needed to notify Blazor that the state has changed and it should re-render the component
+    }
+
+
+    private async Task<IEnumerable<Domain.Entities.ColorType>> GetColors()
+    {
+        return await colorService.GetAllColors();
+    }
+
+
+    private bool Search(Domain.Entities.ColorType colorType)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+        {
+            return true;
+        }
+
+        if (colorType.Name.Contains(searchString))
+        {
+            return true;
+        }
+        return false;
+    }
+
+
+    private async void Delete(int id)
+    {
+        await colorService.DeleteColor(id);
+        snackBar.Add("Color deleted", Severity.Success);
+
+        await RefreshTable();
+    }
+}

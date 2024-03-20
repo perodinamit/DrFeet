@@ -1,0 +1,336 @@
+﻿@page "/shoes"
+@page "/"
+
+@using Domain
+@using System.Drawing.Imaging
+@using WebUI.Pages.Shared
+@inject Application.Services.ShoeService shoeService
+@inject Application.Services.DocumentPDFService documentPDFService
+@inject MudBlazor.ISnackbar snackBar
+@inject IDialogService DialogService
+
+
+
+<MudTable Elevation="5" @ref="@_table" Items="@shoes" RowsPerPage="10" Hover="true" LoadingProgressColor="Color.Info" Filter="new Func<Domain.Entities.Shoe, bool>(Search)" @bind-technology="shoe">
+    <ToolBarContent>
+        @if (visibleToAdmin)
+        {
+            <MudButton Style="margin-top:20px;" Variant="Variant.Filled" @onclick="@(()=>AddShoe())" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" IconSize="Size.Large">New</MudButton>
+        }
+        <MudSpacer />
+        <MudText Typo="Typo.h6">Shoes</MudText>
+
+
+        <MudSpacer />
+        <MudTextField @bind-Value="searchString" Placeholder="Search for shoes..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh hidden>Id</MudTh>
+        <MudTh>Code</MudTh>
+        <MudTh>Name</MudTh>
+        <MudTh>Top</MudTh>
+        <MudTh>Lining</MudTh>
+        <MudTh>Sole</MudTh>
+        <MudTh>Purpose</MudTh>
+        <MudTh>Color</MudTh>
+        <MudTh>Added</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Id" hidden>@context.Id</MudTd>
+        <MudTd DataLabel="Code">@context.Code</MudTd>
+        <MudTd DataLabel="Name">@context.Name</MudTd>
+        <MudTd DataLabel="Name">@context.Top.Name</MudTd>
+        <MudTd DataLabel="Name">@context.Lining.Name</MudTd>
+        <MudTd DataLabel="Name">@context.Sole.Name</MudTd>
+        <MudTd DataLabel="Name">@context.Purpose.Name</MudTd>
+        <MudTd DataLabel="Name">@context.ColorType.Name</MudTd>
+        <MudTd DataLabel="DateAdded">@context.AddedOn.ToString("dd.MM.yyyy")</MudTd>
+        <MudTd DataLabel="">
+            <MudTooltip Text="@TextChange()" Arrow="true" Placement="Placement.Left">
+                <MudFab @onclick="@(()=>ModifyShoe(context.Id))" Color="Color.Primary" StartIcon="@IconChange()" Size="Size.Small" IconSize="Size.Small"></MudFab>
+            </MudTooltip>
+        </MudTd>
+        @if (visibleToAdmin)
+        {
+            <MudTd DataLabel="">
+                <MudTooltip Text="Generate QR" Arrow="true" Placement="Placement.Left">
+                    <MudFab @onclick="@(()=>GenerateQr(context.Id))" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.QrCode" Size="Size.Small" IconSize="Size.Small"></MudFab>
+                </MudTooltip>
+            </MudTd>
+            <MudTd DataLabel="">
+                <MudTooltip Text="Delete" Arrow="true" Placement="Placement.Left">
+                    <MudFab @onclick="@(()=>OpenDialog(context.Id, context.Name))" Variant="Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small"></MudFab>
+                </MudTooltip>
+            </MudTd>
+            <MudTd DataLabel="">
+                <MudTooltip Text="Export to PDF" Arrow="true" Placement="Placement.Left">
+                    <MudFab @onclick="@(()=>ExportToPdf(context.Id))" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PictureAsPdf" Size="Size.Small" IconSize="Size.Small"></MudFab>
+                </MudTooltip>
+            </MudTd>          
+        }
+    </RowTemplate>
+    <PagerContent>
+        <MudPagination SelectedChanged="PageChanged" Count="@((_table.GetFilteredItemsCount() + _table.RowsPerPage - 1) / _table.RowsPerPage)" Class="pa-4" />
+    </PagerContent>
+</MudTable>
+
+
+@code
+{
+    private string searchString = "";
+    private Domain.Entities.Shoe shoe = new();
+    private IEnumerable<Domain.Entities.Shoe> shoes = new List<Domain.Entities.Shoe>();
+    private MudTable<Domain.Entities.Shoe> _table;
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+    private bool visibleToAdmin { get; set; } = false;
+    
+
+    protected override async Task OnInitializedAsync()
+    {
+        var shoeList = await GetShoes();
+        shoes = shoeList.ToList();
+
+        visibleToAdmin = await CheckAuth();
+    }
+
+
+    private void PageChanged(int i)
+    {
+        _table.NavigateTo(i - 1);
+    }
+
+
+    private async Task RefreshTable()
+    {
+        shoes = await GetShoes();
+        StateHasChanged(); // This line is needed to notify Blazor that the state has changed and it should re-render the component
+    }
+
+    private async Task<bool> CheckAuth()
+    {
+        var authState = await authenticationState;
+        var user = authState?.User;
+
+        if (user?.Identity?.IsAuthenticated == true && user.IsInRole("Admin"))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private async Task<List<Domain.Entities.Shoe>> GetShoes()
+    {
+        return await shoeService.GetAllShoes();
+    }
+
+
+    private bool Search(Domain.Entities.Shoe shoe)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+        {
+            return true;
+        }
+
+        var searchStringLower = searchString.ToLower();
+
+        if (shoe.Name.ToLower().Contains(searchStringLower) || shoe.Code.ToLower().Contains(searchStringLower))
+        {
+            return true;
+        }
+        return false;
+    }
+
+
+    private async void Delete(int id)
+    {
+        await shoeService.Delete(id);
+        snackBar.Add("Shoe deleted", Severity.Success);
+
+        await RefreshTable();
+    }
+    private async void AddShoe()
+    {
+        var options = new DialogOptions
+            {
+                Position = DialogPosition.Center,
+                MaxWidth = MaxWidth.Medium,
+                FullWidth = true,
+                CloseOnEscapeKey = true
+            };
+        var dialog = DialogService.Show<AddShoeDialog>("Add New Shoe", options);
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            await RefreshTable();
+        }
+    }
+
+
+    private async void ModifyShoe(int shoeId)
+    {
+
+        var options = new DialogOptions
+            {
+                Position = DialogPosition.Center,
+                MaxWidth = MaxWidth.Medium,
+                FullWidth = true,
+                CloseOnEscapeKey = true
+            };
+
+        var selectedShoe = shoes.FirstOrDefault(s => s.Id == shoeId);
+
+        if (selectedShoe == null)
+            return;
+        var parameters = new DialogParameters<UpdateShoeDialog>
+        {
+            { "ShoeId", shoeId },
+            { "visibleToAdmin", visibleToAdmin }
+
+        };
+        var dialog = DialogService.Show<UpdateShoeDialog>(visibleToAdmin ? "Modify" : "View details", parameters, options);
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            await RefreshTable();
+        }
+    }
+
+
+    #region GenerateQr
+    private async void GenerateQr(int id)
+    {
+        var selectedShoe = shoes.FirstOrDefault(s => s.Id == id);
+
+        if (selectedShoe == null)
+            return;
+
+        try
+        {
+            var qrContent = $"Shoe Code: {selectedShoe.Code}, Name: {selectedShoe.Name}, Top: {selectedShoe.Top?.Name}, Lining: {selectedShoe.Lining?.Name}, Sole: {selectedShoe.Sole?.Name}, Purpose: {selectedShoe.Purpose?.Name}, Color: {selectedShoe.ColorType?.Name}";
+
+            var base64QRCode = GenerateBase64QRCode(qrContent);
+
+
+            var parameters = new DialogParameters<QrCodeDialog>
+        {
+            { "QRCode", base64QRCode }
+        };
+
+            var options = new DialogOptions
+                {
+                    Position = DialogPosition.Center,
+                    MaxWidth = MaxWidth.Large,
+                    CloseOnEscapeKey = true
+                };
+
+            var dialog = DialogService.Show<QrCodeDialog>("QR Code", parameters, options);
+        }
+        catch (Exception ex)
+        {
+            HandleError($"Error generating QR code: {ex.Message}");
+        }
+    }
+
+    private string GenerateBase64QRCode(string content)
+    {
+        var barcodeWriter = new BarcodeWriter
+            {
+                Format = BarcodeFormat.QR_CODE,
+                Options = new QrCodeEncodingOptions
+                {
+                    Width = 200,
+                    Height = 200
+                }
+            };
+
+        var bitmap = barcodeWriter.Write(content);
+
+        using (var memoryStream = new MemoryStream())
+        {
+            bitmap.Save(memoryStream, ImageFormat.Png);
+
+            return $"data:image/png;base64, {Convert.ToBase64String(memoryStream.ToArray())}";
+        }
+    }
+
+    private void HandleError(string errorMessage)
+    {
+        snackBar.Add(errorMessage, Severity.Error);
+    }
+    #endregion
+
+
+    private async void ExportToPdf(int id)
+    {
+        var selectedShoe = shoes.FirstOrDefault(s => s.Id == id);
+
+        var model = new Domain.ViewModels.ShoeViewModel()
+        {
+            Name = selectedShoe.Name,
+            Code = selectedShoe.Code,
+            ColorName = selectedShoe?.ColorType?.Name,
+            ImageData = selectedShoe?.ImageData
+        };
+
+        await documentPDFService.GeneratePDF(model);
+    }
+
+
+    private async Task OpenDialog(int id, string name)
+    {
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
+        var parameters = new DialogParameters { ["Data"] = $"{id.ToString()} - {name}" };
+        var dialog = DialogService.Show<DeleteModal>("Confirm delete", parameters, options);
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            var response = await shoeService.Delete(id);
+            snackBar.Add("Shoe deleted", Severity.Success);
+        }
+
+
+        await RefreshTable();
+    }
+
+
+    private string IconChange()
+    {
+        string icon = string.Empty;
+        if (visibleToAdmin)
+        {
+            icon = @Icons.Material.Filled.Edit;
+        }
+        else
+        {
+            icon = @Icons.Material.Filled.FileOpen;
+        }
+
+        return icon;
+    }
+
+    private string TextChange()
+    {
+        var text = "";
+
+        if (visibleToAdmin)
+        {
+            text = "Update";
+        }
+        else
+        {
+            text = "View";
+        }
+
+        return text;
+    }
+
+}
