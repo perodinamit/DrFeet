@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +13,8 @@ namespace Domain.Entities
         public string Name { get; set; }
         public string? Description { get; set; } = string.Empty;
         public DateTime AddedOn { get; set; } = DateTime.Now;
-
+        public decimal? NumberOfUnits { get; set; } = null;
+        public Units? Units { get; set; }
+        public decimal? ExpensePerUnit { get; set; } = null!;
     }
 }

@@ -1,7 +1,9 @@
 ﻿@page "/tops"
 
 @using Domain
+@using Domain.Enums
 @using WebUI.Pages.Shared
+@using System.Globalization
 @inject Application.Services.TopService topService
 @inject MudBlazor.ISnackbar snackBar
 @inject IDialogService DialogService
@@ -12,8 +14,16 @@
             <MudText Typo="Typo.h6">Add / Edit Tops</MudText>
         </CardHeaderContent>
     </MudCardHeader>
-    <MudCardContent>
-        <MudTextField @bind-Value="top.Name" Label="Name" Variant="Variant.Text" Margin="Margin.Normal" Required="true" RequiredError="Name is required!"></MudTextField>
+    <MudCardContent Style="width:500px">
+        <MudTextField @bind-Value="top.Name" Label="Name" Variant="Variant.Text" Required="true" RequiredError="Name is required!"></MudTextField>
+        <MudTextField @bind-Value="top.NumberOfUnits" Label="Number of units" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudSelect @bind-Value="top.Units" For="@(()=>top.Units)" FullWidth="true" Variant="Variant.Text" Margin="Margin.Normal" Label="Unit">
+            @foreach (Units item in Enum.GetValues(typeof(Units)))
+            {
+                <MudSelectItem Value="@((Units?) item)">@EnumDisplay.GetDisplayText(@item)</MudSelectItem>
+            }
+        </MudSelect>
+        <MudNumericField @bind-Value="top.ExpensePerUnit" Format="N2" Culture="@_cultureInfo" Label="Expense" HideSpinButtons="true" Variant="Variant.Text"></MudNumericField>
         <MudSpacer />
 
         <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Save" Disabled="string.IsNullOrWhiteSpace(top.Name)">Save</MudButton>
@@ -30,12 +40,21 @@
     <HeaderContent>
         <MudTh hidden>Id</MudTh>
         <MudTh>Name</MudTh>
+        <MudTh>Price</MudTh>
         <MudTh>Added</MudTh>
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="Id" hidden>@context.Id</MudTd>
         <MudTd DataLabel="Name">@context.Name</MudTd>
+        @if (context.ExpensePerUnit.HasValue && context.Units.HasValue)
+        {
+            <MudTd DataLabel="Price">@context.ExpensePerUnit € / @EnumDisplay.GetDisplayText(@context.Units)</MudTd>    
+        }
+        else
+        {
+        <MudTd DataLabel="Price">-</MudTd>
+        }
             <MudTd DataLabel="DateAdded">@context.AddedOn.ToString("dd.MM.yyyy")</MudTd>
         <MudTd DataLabel="">
             <MudFab @onclick="@(()=>OpenDialog(context.Id, context.Name))" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small"></MudFab>
@@ -55,7 +74,7 @@
     private Domain.Entities.Top top = new();
     private IEnumerable<Domain.Entities.Top> tops = new List<Domain.Entities.Top>();
     private MudTable<Domain.Entities.Top> _table;
-
+    private CultureInfo _cultureInfo = CultureInfo.GetCultureInfo("hr-HR");
 
     protected override async Task OnInitializedAsync()
     {
@@ -91,6 +110,11 @@
 
     private async Task Save()
     {
+        if (top.Units == 0)
+        {
+            top.Units = null;
+        }
+
         await topService.AddTop(top);
         top = new();
         snackBar.Add("Tech saved", Severity.Success);
@@ -114,12 +138,7 @@
 
     private bool Search(Domain.Entities.Top top)
     {
-        if (string.IsNullOrWhiteSpace(searchString))
-        {
-            return true;
-        }
-
-        if (top.Name.Contains(searchString))
+        if (top.Name.ToLower().Contains(searchString.ToLower()))
         {
             return true;
         }
