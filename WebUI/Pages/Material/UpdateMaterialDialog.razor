@@ -1,0 +1,75 @@
+﻿@using Domain.Entities
+@using Domain.Validations
+@using Domain.ViewModels
+@using FluentValidation
+@using System
+@using System.IO
+@using Microsoft.AspNetCore.Hosting
+@using Microsoft.Extensions.Logging
+@using System.Globalization
+@inject Application.Services.MaterialService materialService
+@inject Application.Services.ColorService colorService
+@inject Application.Services.SupplierService supplierService
+@inject ISnackbar Snackbar
+
+
+<MudDialog>
+    <DialogContent>
+       
+        <!-- Add your form controls for modifying the material here -->
+       
+        <MudTextField @bind-Value="modifiedMaterial.Description" Label="Name" Variant="Variant.Text" Margin="Margin.Normal" Required="true" RequiredError="Description is required!"></MudTextField>
+        <MudTextField @bind-Value="modifiedMaterial.SKU" Label="SKU" Variant="Variant.Text" Margin="Margin.Normal" Required="true" RequiredError="SKU is required!"></MudTextField>
+        <MudTextField @bind-Value="modifiedMaterial.UOM" Label="Units" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudNumericField @bind-Value="modifiedMaterial.Price" Label="Price" Variant="Variant.Text" Margin="Margin.Normal"></MudNumericField>
+        <MudSelect @bind-Value="modifiedMaterial.SupplierId" Label="Supplier">
+            <MudSelectItem Value="0" Disabled="true">Select Supplier</MudSelectItem>
+            @foreach (var item in suppliers)
+            {
+                <MudSelectItem Value="@item.Id">@item.Name</MudSelectItem>
+            }
+        </MudSelect>
+
+        <MudSelect @bind-Value="modifiedMaterial.ColorTypeId" Label="Color Type">
+            <MudSelectItem Value="0" Disabled="true">Select color</MudSelectItem>
+            @foreach (var item in colorTypes)
+            {
+                <MudSelectItem Value="@item.Id">@item.Name</MudSelectItem>
+            }
+        </MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        @if (visibleToAdmin)
+        {
+            <MudButton Color="Color.Primary" OnClick="Submit">Save Changes</MudButton>
+        }
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public int MaterialId { get; set; }
+    [Parameter] public bool visibleToAdmin { get; set; } = false;
+    public Material modifiedMaterial = new();
+    private List<Domain.Entities.Supplier> suppliers = new();
+    private List<Domain.Entities.ColorType> colorTypes = new();
+    private Task<AuthenticationState>? authenticationState { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        modifiedMaterial = await materialService.GetMaterialById(MaterialId);
+       
+        // Populate dropdown options
+        suppliers = await supplierService.GetAllSuppliers();
+        colorTypes = await colorService.GetAllColors();
+    }
+
+    async void Submit()
+    {
+        bool success = await materialService.UpdateMaterial(modifiedMaterial);  
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    void Cancel() => MudDialog.Cancel();
+}

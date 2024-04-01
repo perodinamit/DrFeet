@@ -18,5 +18,11 @@ namespace Infrastructure.Context
         public DbSet<ColorType> ColorTypes { get; set; }
         public DbSet<Purpose> Purposes { get; set; }
         public DbSet<Sole> Soles { get; set; }
+
+        public DbSet<Decoration> Decorations { get; set; }
+
+        public DbSet<Material> Materials { get; set; }
+
+        public DbSet<Supplier> Suppliers { get; set; }
     }
 }

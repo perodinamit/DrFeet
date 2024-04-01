@@ -1,0 +1,60 @@
+﻿@using Domain.Entities
+@using System.Globalization
+@inject Application.Services.MaterialService materialService
+@inject Application.Services.ColorService colorService
+@inject Application.Services.SupplierService supplierService
+@inject MudBlazor.ISnackbar snackBar
+@inject IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        <!-- Add your form controls for adding a new shoe here -->
+        <MudTextField @bind-Value="newMaterial.Description" Label="Name" Variant="Variant.Text" Margin="Margin.Normal" Required="true" RequiredError="Description is required!"></MudTextField>
+        <MudTextField @bind-Value="newMaterial.SKU" Label="SKU" Variant="Variant.Text" Margin="Margin.Normal" Required="true" RequiredError="SKU is required!"></MudTextField>
+        <MudTextField @bind-Value="newMaterial.UOM" Label="Units" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudNumericField @bind-Value="newMaterial.Price" Label="Price" Variant="Variant.Text" Margin="Margin.Normal"></MudNumericField>
+        <MudSelect @bind-Value="newMaterial.SupplierId" Label="Supplier">
+            <MudSelectItem Value="0" Disabled="true">Select Supplier</MudSelectItem>
+            @foreach (var item in suppliers)
+            {
+                <MudSelectItem Value="@item.Id">@item.Name</MudSelectItem>
+            }
+        </MudSelect>
+
+        <MudSelect @bind-Value="newMaterial.ColorTypeId" Label="Color Type">
+            <MudSelectItem Value="0" Disabled="true">Select color</MudSelectItem>
+            @foreach (var item in colorTypes)
+            {
+                <MudSelectItem Value="@item.Id">@item.Name</MudSelectItem>
+            }
+        </MudSelect>
+
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Add Material</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    public Material newMaterial = new();
+    private List<Domain.Entities.Supplier> suppliers = new();
+    private List<Domain.Entities.ColorType> colorTypes = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        suppliers = await supplierService.GetAllSuppliers();
+        colorTypes = await colorService.GetAllColors();
+    }
+
+    async void Submit()
+    {
+        
+        bool success = await materialService.AddMaterial(newMaterial);
+        
+        MudDialog.Close(DialogResult.Ok(success));
+    }
+
+    void Cancel() => MudDialog.Cancel();
+}

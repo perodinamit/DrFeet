@@ -1,0 +1,54 @@
+﻿@using Domain.Entities
+@using Domain.Validations
+@using Domain.ViewModels
+@using FluentValidation
+@using System
+@using System.IO
+@using Microsoft.AspNetCore.Hosting
+@using Microsoft.Extensions.Logging
+@using System.Globalization
+@inject Application.Services.SupplierService supplierService
+@inject ISnackbar Snackbar
+
+
+<MudDialog>
+    <DialogContent>
+       
+        <!-- Add your form controls for modifying the supplier here -->
+        <!-- Add your form controls for adding a new supplier here -->
+        <MudTextField @bind-Value="modifiedSupplier.Name" Label="Name" Variant="Variant.Text" Margin="Margin.Normal" Required="true" RequiredError="Description is required!"></MudTextField>
+        <MudTextField @bind-Value="modifiedSupplier.Address" Label="Address" Variant="Variant.Text" Margin="Margin.Normal" Required="true" RequiredError="SKU is required!"></MudTextField>
+        <MudTextField @bind-Value="modifiedSupplier.PhoneNumber" Label="Phone Number" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudTextField @bind-Value="modifiedSupplier.Iban" Label="IBAN" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudTextField @bind-Value="modifiedSupplier.Email" Label="E-mail" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudTextField @bind-Value="modifiedSupplier.ContactPerson" Label="Contact Person" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        @if (visibleToAdmin)
+        {
+            <MudButton Color="Color.Primary" OnClick="Submit">Save Changes</MudButton>
+        }
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public int SupplierId { get; set; }
+    [Parameter] public bool visibleToAdmin { get; set; } = false;
+    public Supplier modifiedSupplier = new();
+    private Task<AuthenticationState>? authenticationState { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        modifiedSupplier = await supplierService.GetSupplierById(SupplierId);     
+    }
+
+    async void Submit()
+    {
+        bool success = await supplierService.UpdateSupplier(modifiedSupplier);
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    void Cancel() => MudDialog.Cancel();
+}

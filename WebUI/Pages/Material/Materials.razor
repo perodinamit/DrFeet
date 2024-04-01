@@ -1,0 +1,249 @@
+﻿@page "/materials"
+
+@using Domain
+@using WebUI.Pages.Shared
+@inject Application.Services.MaterialService materialService
+@inject Application.Services.ColorService colorService
+@inject Application.Services.SupplierService supplierService
+@inject MudBlazor.ISnackbar snackBar
+@inject IDialogService DialogService
+
+<MudTable Elevation="5" @ref="@_table" Items="@materials" RowsPerPage="10" Hover="true" LoadingProgressColor="Color.Info" Filter="new Func<Domain.Entities.Material, bool>(Search)" @bind-technology="material">
+
+    <ToolBarContent>
+        @if (visibleToAdmin)
+        {
+            <MudButton Style="margin-top:20px;" Variant="Variant.Filled" @onclick="@(()=>AddMaterial())" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" IconSize="Size.Large">New</MudButton>
+        }
+        <MudSpacer />
+        <MudText Typo="Typo.h6">Materials</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="searchString" Placeholder="Search for materials..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh hidden>Id</MudTh>
+        <MudTh>Description</MudTh>
+        <MudTh>SKU</MudTh>
+        <MudTh>Units</MudTh>
+        <MudTh>Price</MudTh>
+        <MudTh>Color</MudTh>
+        <MudTh>Supplier</MudTh>
+        <MudTh>Added</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Id" hidden>@context.Id</MudTd>
+        <MudTd DataLabel="Description">@context.Description</MudTd>
+        <MudTd DataLabel="SKU">@context.SKU</MudTd>
+        <MudTd DataLabel="Units">@context.UOM</MudTd>
+        <MudTd DataLabel="Price">@context.Price</MudTd>
+        <MudTd DataLabel="Color">@context.ColorType.Name</MudTd>
+        <MudTd DataLabel="Supplier">@context.Supplier.Name</MudTd>
+        <MudTd DataLabel="DateAdded">@context.AddedOn.ToString("dd.MM.yyyy")</MudTd>
+        <MudTd DataLabel="Delete">
+            <MudFab @onclick="@(()=>OpenDialog(context.Id, context.Description))" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small"></MudFab>
+        </MudTd>
+        <MudTd DataLabel="Modify">
+            <MudTooltip Text="@TextChange()" Arrow="true" Placement="Placement.Left">
+                <MudFab @onclick="@(()=>ModifyMaterial(context.Id))" Color="Color.Primary" StartIcon="@IconChange()" Size="Size.Small" IconSize="Size.Small"></MudFab>
+            </MudTooltip>
+        </MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudPagination SelectedChanged="PageChanged" Count="@((_table.GetFilteredItemsCount() + _table.RowsPerPage - 1) / _table.RowsPerPage)" Class="pa-4" />
+    </PagerContent>
+</MudTable>
+
+@code
+{
+    private string searchString = "";
+    private Domain.Entities.Material material = new();
+    private IEnumerable<Domain.Entities.Material> materials = new List<Domain.Entities.Material>();
+    private MudTable<Domain.Entities.Material> _table;
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+    private bool visibleToAdmin { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var materialList = await GetMaterials();
+        materials = materialList.ToList();
+        visibleToAdmin = await CheckAuth();
+    }
+
+    private void PageChanged(int i)
+    {
+        _table.NavigateTo(i - 1);
+    }
+    private async Task<bool> CheckAuth()
+    {
+        var authState = await authenticationState;
+        var user = authState?.User;
+
+        if (user?.Identity?.IsAuthenticated == true && user.IsInRole("Admin"))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private async Task OpenDialog(int id, string name)
+    {
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
+        var parameters = new DialogParameters { ["Data"] = $"{id.ToString()} - {name}" };
+        var dialog = DialogService.Show<DeleteModal>("Confirm delete", parameters, options);
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            var response = await materialService.DeleteMaterial(id);
+
+            snackBar.Add($"{nameof(Materials)} deleted", Severity.Success);
+        }
+
+
+        await RefreshTable();
+    }
+
+
+    private async Task Save()
+    {
+        await materialService.AddMaterial(material);
+        material = new();
+        snackBar.Add("Material saved", Severity.Success);
+
+        await RefreshTable();
+    }
+
+
+    private async Task RefreshTable()
+    {
+        materials = await GetMaterials();
+        StateHasChanged(); // This line is needed to notify Blazor that the state has changed and it should re-render the component
+    }
+
+
+    private async Task<IEnumerable<Domain.Entities.Material>> GetMaterials()
+    {
+        materials = await materialService.GetAllMaterials();
+        foreach (var item in materials)
+        {
+            item.ColorType = await colorService.GetColorById(item.ColorTypeId);
+            item.Supplier = await supplierService.GetSupplierById(item.SupplierId);
+        }
+        return materials;
+    }
+
+
+    private bool Search(Domain.Entities.Material material)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+        {
+            return true;
+        }
+
+
+        if (material.Description.Contains(searchString))
+        {
+            return true;
+        }
+        return false;
+    }
+
+
+    private async void Delete(int id)
+    {
+        await materialService.DeleteMaterial(id);
+        snackBar.Add("Material deleted", Severity.Success);
+
+        await RefreshTable();
+    }
+
+    private async void AddMaterial()
+    {
+        var options = new DialogOptions
+            {
+                Position = DialogPosition.Center,
+                MaxWidth = MaxWidth.Medium,
+                FullWidth = true,
+                CloseOnEscapeKey = true
+            };
+        var dialog = DialogService.Show<AddMaterialDialog>("Add New Material", options);
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            await RefreshTable();
+        }
+    }
+
+
+    private async void ModifyMaterial(int materialId)
+    {
+
+        var options = new DialogOptions
+            {
+                Position = DialogPosition.Center,
+                MaxWidth = MaxWidth.Medium,
+                FullWidth = true,
+                CloseOnEscapeKey = true
+            };
+
+        var selectedShoe = materials.FirstOrDefault(s => s.Id == materialId);
+
+        if (selectedShoe == null)
+            return;
+        var parameters = new DialogParameters<UpdateMaterialDialog>
+        {
+            { "MaterialId", materialId },
+            { "visibleToAdmin", visibleToAdmin }
+
+        };
+        var dialog = DialogService.Show<UpdateMaterialDialog>(visibleToAdmin ? "Modify" : "View details", parameters, options);
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            await RefreshTable();
+        }
+    }
+
+    private void HandleError(string errorMessage)
+    {
+        snackBar.Add(errorMessage, Severity.Error);
+    }
+    private string IconChange()
+    {
+        string icon = string.Empty;
+        if (visibleToAdmin)
+        {
+            icon = @Icons.Material.Filled.Edit;
+        }
+        else
+        {
+            icon = @Icons.Material.Filled.FileOpen;
+        }
+
+        return icon;
+    }
+
+    private string TextChange()
+    {
+        var text = "";
+
+        if (visibleToAdmin)
+        {
+            text = "Update";
+        }
+        else
+        {
+            text = "View";
+        }
+
+        return text;
+    }
+}
