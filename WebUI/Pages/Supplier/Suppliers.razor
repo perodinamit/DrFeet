@@ -1,0 +1,245 @@
+﻿@page "/suppliers"
+
+@using Domain
+@using Domain.Entities;
+@using WebUI.Pages.Shared
+@inject Application.Services.SupplierService supplierService
+@inject MudBlazor.ISnackbar snackBar
+@inject IDialogService DialogService
+
+<br />
+<MudTable Elevation="5" @ref="@_table" Items="@suppliers" RowsPerPage="10" Hover="true" LoadingProgressColor="Color.Info" Filter="new Func<Domain.Entities.Supplier, bool>(Search)" @bind-technology="supplier">
+
+    <ToolBarContent>
+        @if (visibleToAdmin)
+        {
+            <MudButton Style="margin-top:20px;margin-right:20px;" Variant="Variant.Filled" @onclick="@(()=>AddSupplier())" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" IconSize="Size.Large">New</MudButton>
+        }
+        <MudSpacer />
+        <MudText Typo="Typo.h6">Suppliers</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="searchString" Placeholder="Search for suppliers..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh hidden>Id</MudTh>
+        <MudTh>Name</MudTh>
+        <MudTh>Address</MudTh>
+        <MudTh>Phone Number</MudTh>
+        <MudTh>IBAN</MudTh>
+        <MudTh>E-mail</MudTh>
+        <MudTh>Contact Person</MudTh>
+        <MudTh>Added</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Id" hidden>@context.Id</MudTd>
+        <MudTd DataLabel="Name">@context.Name</MudTd>
+        <MudTd DataLabel="Address">@context.Address</MudTd>
+        <MudTd DataLabel="Phone Number">@context.PhoneNumber</MudTd>
+        <MudTd DataLabel="IBAN">@context.Iban</MudTd>
+        <MudTd DataLabel="E-mail">@context.Email</MudTd>
+        <MudTd DataLabel="Contact Person">@context.ContactPerson</MudTd>
+            <MudTd DataLabel="DateAdded">@context.AddedOn.ToString("dd.MM.yyyy")</MudTd>
+        <MudTd DataLabel="Delete">
+            <MudFab @onclick="@(()=>OpenDialog(context.Id, context.Name))" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small"></MudFab>
+        </MudTd>
+        <MudTd DataLabel="Modify">
+            <MudTooltip Text="@TextChange()" Arrow="true" Placement="Placement.Left">
+                <MudFab @onclick="@(()=>ModifySupplier(context.Id))" Color="Color.Primary" StartIcon="@IconChange()" Size="Size.Small" IconSize="Size.Small"></MudFab>
+            </MudTooltip>
+        </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudPagination SelectedChanged="PageChanged" Count="@((_table.GetFilteredItemsCount() + _table.RowsPerPage - 1) / _table.RowsPerPage)" Class="pa-4" />
+        </PagerContent>
+</MudTable>
+
+
+
+@code 
+    {
+    private string searchString = "";
+    private Domain.Entities.Supplier supplier = new();
+    private IEnumerable<Domain.Entities.Supplier> suppliers = new List<Domain.Entities.Supplier>();
+    private MudTable<Domain.Entities.Supplier> _table;
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+    private bool visibleToAdmin { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var supplierList = await GetSuppliers();
+        suppliers = supplierList.ToList();
+        visibleToAdmin = await CheckAuth();
+    }
+
+
+    private void PageChanged(int i)
+    {
+        _table.NavigateTo(i - 1);
+    }
+
+
+    private async Task OpenDialog(int id, string name)
+    {
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
+        var parameters = new DialogParameters { ["Data"] = $"{id.ToString()} - {name}" };
+        var dialog = DialogService.Show<DeleteModal>("Confirm delete", parameters, options);
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            var response = await supplierService.DeleteSupplier(id);
+
+            snackBar.Add($"{nameof(Supplier)} deleted", Severity.Success);
+        }
+
+
+        await RefreshTable();
+    }
+
+    private async Task<bool> CheckAuth()
+    {
+        var authState = await authenticationState;
+        var user = authState?.User;
+
+        if (user?.Identity?.IsAuthenticated == true && user.IsInRole("Admin"))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private async Task Save()
+    {
+        await supplierService.AddSupplier(supplier);
+        supplier = new();
+        snackBar.Add("Supplier saved", Severity.Success);
+
+        await RefreshTable();
+    }
+
+    private async Task RefreshTable()
+    {
+        suppliers = await GetSuppliers();
+        StateHasChanged(); // This line is needed to notify Blazor that the state has changed and it should re-render the component
+    }
+
+
+    private async Task<IEnumerable<Domain.Entities.Supplier>> GetSuppliers()
+    {
+        return await supplierService.GetAllSuppliers();
+    }
+
+
+    private bool Search(Domain.Entities.Supplier supplier)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+        {
+            return true;
+        }
+
+        if (supplier.Name.Contains(searchString))
+        {
+            return true;
+        }
+        return false;
+    }
+
+
+    private async void Delete(int id)
+    {
+        await supplierService.DeleteSupplier(id);
+        snackBar.Add("Color deleted", Severity.Success);
+
+        await RefreshTable();
+    }
+
+    private async void AddSupplier()
+    {
+        var options = new DialogOptions
+            {
+                Position = DialogPosition.Center,
+                MaxWidth = MaxWidth.Medium,
+                FullWidth = true,
+                CloseOnEscapeKey = true
+            };
+        var dialog = DialogService.Show<AddSupplierDialog>("Add New Supplier", options);
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            await RefreshTable();
+        }
+    }
+
+
+    private async void ModifySupplier(int supplierId)
+    {
+
+        var options = new DialogOptions
+            {
+                Position = DialogPosition.Center,
+                MaxWidth = MaxWidth.Medium,
+                FullWidth = true,
+                CloseOnEscapeKey = true
+            };
+
+        var selectedShoe = suppliers.FirstOrDefault(s => s.Id == supplierId);
+
+        if (selectedShoe == null)
+            return;
+        var parameters = new DialogParameters<UpdateSupplierDialog>
+        {
+            { "SupplierId", supplierId },
+            { "visibleToAdmin", visibleToAdmin }
+
+        };
+        var dialog = DialogService.Show<UpdateSupplierDialog>(visibleToAdmin ? "Modify" : "View details", parameters, options);
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            await RefreshTable();
+        }
+    }
+
+    private void HandleError(string errorMessage)
+    {
+        snackBar.Add(errorMessage, Severity.Error);
+    }
+    private string IconChange()
+    {
+        string icon = string.Empty;
+        if (visibleToAdmin)
+        {
+            icon = @Icons.Material.Filled.Edit;
+        }
+        else
+        {
+            icon = @Icons.Material.Filled.FileOpen;
+        }
+
+        return icon;
+    }
+
+    private string TextChange()
+    {
+        var text = "";
+
+        if (visibleToAdmin)
+        {
+            text = "Update";
+        }
+        else
+        {
+            text = "View";
+        }
+
+        return text;
+    }
+}

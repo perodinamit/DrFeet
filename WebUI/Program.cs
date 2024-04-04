@@ -47,6 +47,12 @@ builder.Services.AddScoped<IGenericRepository<Sole>, SoleRepository>();
 builder.Services.AddScoped<ISoleRepository, SoleRepository>();
 builder.Services.AddScoped<IGenericRepository<Purpose>, PurposeRepository>();
 builder.Services.AddScoped<IPurposeRepository, PurposeRepository>();
+builder.Services.AddScoped<IGenericRepository<Decoration>, DecorationRepository>();
+builder.Services.AddScoped<IDecorationRepository, DecorationRepository>();
+builder.Services.AddScoped<IGenericRepository<Material>, MaterialRepository>();
+builder.Services.AddScoped<IMaterialRepository, MaterialRepository>();
+builder.Services.AddScoped<IGenericRepository<Supplier>, SupplierRepository>();
+builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
 
 builder.Services.AddScoped<TopService>();
 builder.Services.AddScoped<ColorService>();
@@ -56,6 +62,9 @@ builder.Services.AddScoped<PurposeService>();
 builder.Services.AddScoped<ShoeService>();
 builder.Services.AddScoped<ImageService>();
 builder.Services.AddScoped<DocumentPDFService>();
+builder.Services.AddScoped<DecorationService>();
+builder.Services.AddScoped<MaterialService>();
+builder.Services.AddScoped<SupplierService>();
 
 builder.Services.AddMudServices();
 builder.Services.AddControllersWithViews();

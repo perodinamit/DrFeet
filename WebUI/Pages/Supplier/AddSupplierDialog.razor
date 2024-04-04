@@ -1,0 +1,40 @@
+﻿@using Domain.Entities
+@using System.Globalization
+@inject Application.Services.SupplierService supplierService
+@inject MudBlazor.ISnackbar snackBar
+@inject IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        <!-- Add your form controls for adding a new supplier here -->
+        <MudTextField @bind-Value="newSupplier.Name" Label="Name" Variant="Variant.Text" Margin="Margin.Normal" Required="true" RequiredError="Description is required!"></MudTextField>
+        <MudTextField @bind-Value="newSupplier.Address" Label="Address" Variant="Variant.Text" Margin="Margin.Normal" Required="true" RequiredError="SKU is required!"></MudTextField>
+        <MudTextField @bind-Value="newSupplier.PhoneNumber" Label="Phone Number" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudTextField @bind-Value="newSupplier.Iban" Label="IBAN" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudTextField @bind-Value="newSupplier.Email" Label="E-mail" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudTextField @bind-Value="newSupplier.ContactPerson" Label="Contact Person" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Add Material</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    public Supplier newSupplier = new();
+    
+    protected override async Task OnInitializedAsync()
+    {
+    }
+
+    async void Submit()
+    {
+        
+        bool success = await supplierService.AddSupplier(newSupplier);
+        
+        MudDialog.Close(DialogResult.Ok(success));
+    }
+
+    void Cancel() => MudDialog.Cancel();
+}

@@ -7,10 +7,12 @@ namespace Domain.Entities
         public int Id { get; set; }
 
         [Required(ErrorMessage = "Code is required")]
-        public string Code { get; set; }
-        public string Name { get; set; }
+        public string Code { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
         public string? Description { get; set; } = null;
         public DateTime AddedOn { get; set; } = DateTime.Now;
+
+        public decimal? Price { get; set; } = decimal.Zero;
 
         public byte[]? ImageData { get; set; }
 
