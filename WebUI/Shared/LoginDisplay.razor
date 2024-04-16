@@ -1,12 +1,19 @@
-﻿<AuthorizeView>
+﻿@using MudBlazor
+@inject NavigationManager NavigationManager
+
+<AuthorizeView>
     <Authorized>
-        <a href="Identity/Account/Manage">Hello, @context.User.Identity?.Name!</a>
-        <form method="post" action="Identity/Account/Logout">
-            <button type="submit" class="nav-link btn btn-link">Log out</button>
-        </form>
+        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Login" Size="Size.Small" Color="Color.Error">
+            <a href="Identity/Account/Manage">Hello, @context.User.Identity?.Name!</a>
+            <form method="post" action="Identity/Account/Logout">
+                <button type="submit" style="color:aliceblue" class="nav-link btn btn-link">Log out</button>
+            </form>
+        </MudButton>
+
+
     </Authorized>
     <NotAuthorized>
-        <a href="Identity/Account/Register">Register</a>
-        <a href="Identity/Account/Login">Log in</a>
+        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Login" Size="Size.Small" Color="Color.Info" href="Identity/Account/Register">Register</MudButton>
+        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Logout" Size="Size.Small" Color="Color.Success" href="Identity/Account/Login">Log in</MudButton>
     </NotAuthorized>
 </AuthorizeView>
