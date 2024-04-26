@@ -13,7 +13,7 @@
     <ToolBarContent>
         @if (visibleToAdmin)
         {
-            <MudButton Style="margin-top:20px;margin-right:20px;" Variant="Variant.Filled" @onclick="@(()=>AddSupplier())" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" IconSize="Size.Large">New</MudButton>
+            <MudButton Style="margin-top:20px;margin-right:20px;" Variant="MudBlazor.Variant.Filled" @onclick="@(()=>AddSupplier())" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" IconSize="Size.Large">New</MudButton>
         }
         <MudSpacer />
         <MudText Typo="Typo.h6">Suppliers</MudText>
@@ -82,7 +82,7 @@
 
     private async Task OpenDialog(int id, string name)
     {
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
+        var options = new MudBlazor.DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
         var parameters = new DialogParameters { ["Data"] = $"{id.ToString()} - {name}" };
         var dialog = DialogService.Show<DeleteModal>("Confirm delete", parameters, options);
 
@@ -159,9 +159,9 @@
 
     private async void AddSupplier()
     {
-        var options = new DialogOptions
+        var options = new MudBlazor.DialogOptions
             {
-                Position = DialogPosition.Center,
+                Position = MudBlazor.DialogPosition.Center,
                 MaxWidth = MaxWidth.Medium,
                 FullWidth = true,
                 CloseOnEscapeKey = true
@@ -180,9 +180,9 @@
     private async void ModifySupplier(int supplierId)
     {
 
-        var options = new DialogOptions
+        var options = new MudBlazor.DialogOptions
             {
-                Position = DialogPosition.Center,
+                Position = MudBlazor.DialogPosition.Center,
                 MaxWidth = MaxWidth.Medium,
                 FullWidth = true,
                 CloseOnEscapeKey = true

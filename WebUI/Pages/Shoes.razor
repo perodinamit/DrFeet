@@ -3,19 +3,20 @@
 
 @using Domain
 @using System.Drawing.Imaging
+@using Domain.Entities
 @using WebUI.Pages.Shared
 @inject Application.Services.ShoeService shoeService
 @inject Application.Services.DocumentPDFService documentPDFService
 @inject MudBlazor.ISnackbar snackBar
 @inject IDialogService DialogService
-
+@inject NavigationManager NavigationManager
 
 
 <MudTable Elevation="5" @ref="@_table" Items="@shoes" RowsPerPage="10" Hover="true" LoadingProgressColor="Color.Info" Filter="new Func<Domain.Entities.Shoe, bool>(Search)" @bind-technology="shoe">
     <ToolBarContent>
         @if (visibleToAdmin)
         {
-            <MudButton Style="margin-top:20px;" Variant="Variant.Filled" @onclick="@(()=>AddShoe())" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" IconSize="Size.Large">New</MudButton>
+            <MudButton Style="margin-top:20px;" Variant="MudBlazor.Variant.Filled" @onclick="@(()=>AddShoe())" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" IconSize="Size.Large">New</MudButton>
         }
         <MudSpacer />
         <MudText Typo="Typo.h6">Shoes</MudText>
@@ -60,14 +61,19 @@
             </MudTd>
             <MudTd DataLabel="">
                 <MudTooltip Text="Delete" Arrow="true" Placement="Placement.Left">
-                    <MudFab @onclick="@(()=>OpenDialog(context.Id, context.Name))" Variant="Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small"></MudFab>
+                    <MudFab @onclick="@(()=>OpenDialog(context.Id, context.Name))" Variant="MudBlazor.Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small"></MudFab>
                 </MudTooltip>
             </MudTd>
             <MudTd DataLabel="">
                 <MudTooltip Text="Export to PDF" Arrow="true" Placement="Placement.Left">
                     <MudFab @onclick="@(()=>ExportToPdf(context.Id))" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PictureAsPdf" Size="Size.Small" IconSize="Size.Small"></MudFab>
                 </MudTooltip>
-            </MudTd>          
+            </MudTd>
+            <MudTd DataLabel="">
+                <MudTooltip Text="Calculate Normative" Arrow="true" Placement="Placement.Left">
+                    <MudFab @onclick="@(()=>Calculate(context.Id))" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Calculate" Size="Size.Small" IconSize="Size.Small"></MudFab>
+                </MudTooltip>
+            </MudTd>
         }
     </RowTemplate>
     <PagerContent>
@@ -85,7 +91,7 @@
     [CascadingParameter]
     private Task<AuthenticationState>? authenticationState { get; set; }
     private bool visibleToAdmin { get; set; } = false;
-    
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -153,9 +159,9 @@
     }
     private async void AddShoe()
     {
-        var options = new DialogOptions
+        var options = new MudBlazor.DialogOptions
             {
-                Position = DialogPosition.Center,
+                Position = MudBlazor.DialogPosition.Center,
                 MaxWidth = MaxWidth.Medium,
                 FullWidth = true,
                 CloseOnEscapeKey = true
@@ -174,9 +180,9 @@
     private async void ModifyShoe(int shoeId)
     {
 
-        var options = new DialogOptions
+        var options = new MudBlazor.DialogOptions
             {
-                Position = DialogPosition.Center,
+                Position = MudBlazor.DialogPosition.Center,
                 MaxWidth = MaxWidth.Medium,
                 FullWidth = true,
                 CloseOnEscapeKey = true
@@ -223,9 +229,9 @@
             { "QRCode", base64QRCode }
         };
 
-            var options = new DialogOptions
+            var options = new MudBlazor.DialogOptions
                 {
-                    Position = DialogPosition.Center,
+                    Position = MudBlazor.DialogPosition.Center,
                     MaxWidth = MaxWidth.Large,
                     CloseOnEscapeKey = true
                 };
@@ -282,10 +288,19 @@
         await documentPDFService.GeneratePDF(model);
     }
 
+    private async void Calculate(int id)
+    {
+        // Construct the URL for the Calculation page with the shoe ID as a query parameter
+        string url = $"calculations/{id}";
+        // Use NavigationManager to navigate to the Calculation page
+        NavigationManager.NavigateTo(url);
+       
+    }
+
 
     private async Task OpenDialog(int id, string name)
     {
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
+        var options = new MudBlazor.DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
         var parameters = new DialogParameters { ["Data"] = $"{id.ToString()} - {name}" };
         var dialog = DialogService.Show<DeleteModal>("Confirm delete", parameters, options);
 

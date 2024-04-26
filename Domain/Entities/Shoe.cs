@@ -30,5 +30,9 @@ namespace Domain.Entities
 
         public int SoleId { get; set; }
         public Sole? Sole { get; set;}
+
+        public int? DecorationId { get; set; }
+        public Decoration? Decoration { get; set; }
+        public List<Calculation>? Calculations { get; set; }
     }
 }

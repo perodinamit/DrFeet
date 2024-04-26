@@ -4,6 +4,7 @@ using Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240424115801_Added_DecorationToShoe")]
+    partial class Added_DecorationToShoe
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -36,12 +39,7 @@ namespace Infrastructure.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("ShoeId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("ShoeId");
 
                     b.ToTable("Calculations");
                 });
@@ -233,6 +231,9 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("AddedOn")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("CalculationId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -269,6 +270,8 @@ namespace Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CalculationId");
 
                     b.HasIndex("ColorTypeId");
 
@@ -586,15 +589,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Entities.Calculation", b =>
-                {
-                    b.HasOne("Domain.Entities.Shoe", "Shoe")
-                        .WithMany("Calculations")
-                        .HasForeignKey("ShoeId");
-
-                    b.Navigation("Shoe");
-                });
-
             modelBuilder.Entity("Domain.Entities.CalculationItem", b =>
                 {
                     b.HasOne("Domain.Entities.Calculation", "Calculation")
@@ -645,6 +639,10 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.Shoe", b =>
                 {
+                    b.HasOne("Domain.Entities.Calculation", "Calculation")
+                        .WithMany()
+                        .HasForeignKey("CalculationId");
+
                     b.HasOne("Domain.Entities.ColorType", "ColorType")
                         .WithMany()
                         .HasForeignKey("ColorTypeId")
@@ -678,6 +676,8 @@ namespace Infrastructure.Migrations
                         .HasForeignKey("TopId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Calculation");
 
                     b.Navigation("ColorType");
 
@@ -764,11 +764,6 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.Calculation", b =>
                 {
                     b.Navigation("CalculationItems");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Shoe", b =>
-                {
-                    b.Navigation("Calculations");
                 });
 #pragma warning restore 612, 618
         }

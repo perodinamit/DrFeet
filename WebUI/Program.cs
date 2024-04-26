@@ -53,6 +53,7 @@ builder.Services.AddScoped<IGenericRepository<Material>, MaterialRepository>();
 builder.Services.AddScoped<IMaterialRepository, MaterialRepository>();
 builder.Services.AddScoped<IGenericRepository<Supplier>, SupplierRepository>();
 builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
+builder.Services.AddScoped<ICalculationRepository, CalculationService>();
 
 builder.Services.AddScoped<TopService>();
 builder.Services.AddScoped<ColorService>();
@@ -65,6 +66,7 @@ builder.Services.AddScoped<DocumentPDFService>();
 builder.Services.AddScoped<DecorationService>();
 builder.Services.AddScoped<MaterialService>();
 builder.Services.AddScoped<SupplierService>();
+builder.Services.AddScoped<CalculationService>();
 
 builder.Services.AddMudServices();
 builder.Services.AddControllersWithViews();
