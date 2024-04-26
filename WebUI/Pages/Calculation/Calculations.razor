@@ -1,0 +1,388 @@
+﻿@page "/calculations/{shoeId:int}"
+@page "/calculations"
+@using Domain
+@using Radzen
+@using Radzen.Blazor
+@using WebUI.Pages.Shared
+@inject Application.Services.CalculationService calculationService
+@inject Application.Services.MaterialService materialService
+@inject Application.Services.ShoeService shoeService
+@inject IDialogService DialogService
+<style>
+    #wrapper {
+        overflow: auto;
+    }
+
+    #c1 {
+        float: right;
+    }
+
+    #c2 {
+        float: right;
+    }
+</style>
+<h1>Normative Calculations</h1>
+<RadzenButton Icon="add_circle_outline" style="margin-bottom: 10px" Text="Add New Calculation" Click="@InsertRow" Disabled=@(calculationToInsert != null) />
+<RadzenDataGrid @ref="grid" AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true" RowRender="@RowRender" ShowExpandColumn="true" ShowPagingSummary="true"
+                EditMode="Radzen.DataGridEditMode.Single" ExpandMode="DataGridExpandMode.Single" EmptyText="No data" Data="@_calculations" TItem="Domain.Entities.Calculation" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow" @bind-Value="@SelectedCalculations">
+    <Template Context="calculation">
+        <RadzenCard Style="margin-bottom:20px">
+            Shoe:
+            <b>@ShoeId</b>
+        </RadzenCard>
+        <RadzenTabs>
+            <Tabs>
+                <RadzenTabsItem Text="Calculation Details">
+                    <RadzenButton Icon="add_circle_outline" style="margin-bottom: 10px" Text="Add Calculation Item" Click="@InsertDetailRow" Disabled=@(detailToInsert != null) />
+                    <RadzenDataGrid @ref="gridDetail" AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true" Data="@(SelectedCalculations.FirstOrDefault()?.CalculationItems)"
+                                    TItem="Domain.Entities.CalculationItem" RowUpdate="@OnUpdateRowDetail" RowCreate="@OnCreateRowDetail" RowRender="@RowRenderDetail">
+                        <Columns>
+                            <RadzenDataGridColumn TItem="Domain.Entities.CalculationItem" Property="Type" Title="Item type">
+                                <EditTemplate Context="calculationDetail">
+                                    <RadzenTextBox @bind-Value="calculationDetail.Type" Style="width: 100%; display: block" Name="Type" />
+                                    <RadzenRequiredValidator Text="Type is required" Component="Type" Popup="true" Style="position: absolute" />
+                                </EditTemplate>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="Domain.Entities.CalculationItem" Property="Description" Title="Description">
+                                <EditTemplate Context="calculationDetail">
+                                    <RadzenTextBox @bind-Value="calculationDetail.Description" Style="width:100%; display: block" Name="Description" />
+                                    <RadzenRequiredValidator Text="Description is required" Component="Description" Popup="true" Style="position:absolute" />
+                                </EditTemplate>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="Domain.Entities.CalculationItem" Property="Color" Title="Color">
+                                <EditTemplate Context="calculationDetail">
+                                    <RadzenTextBox @bind-Value="calculationDetail.Color" Style="width:100%; display: block" Name="Color" />
+                                    <RadzenRequiredValidator Text="Color is required" Component="Color" Popup="true" Style="position:absolute" />
+                                </EditTemplate>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="Domain.Entities.CalculationItem" Property="Material" Title="Material">
+                                <EditTemplate Context="calculationDetail">
+                                    <RadzenTextBox @bind-Value="calculationDetail.Material" Style="width:100%; display: block" Name="Material" />
+                                    <RadzenRequiredValidator Text="Material is required" Component="Material" Popup="true" Style="position:absolute" />
+                                </EditTemplate>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="Domain.Entities.CalculationItem" Property="Normativ" Title="Normativ">
+                                <EditTemplate Context="calculationDetail">
+                                    <RadzenTextBox @bind-Value="calculationDetail.Normativ" Style="width:100%; display: block" Name="Normativ" />
+                                    <RadzenRequiredValidator Text="Normativ is required" Component="Normativ" Popup="true" Style="position:absolute" />
+                                </EditTemplate>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="Domain.Entities.CalculationItem" Property="Price" Title="Unit Price">
+                                <EditTemplate Context="calculationDetail">
+                                    <RadzenNumeric TValue="decimal" @bind-Value="calculationDetail.Price" Style="width:100%; display: block" Name="Price" />
+                                    <RadzenRequiredValidator Text="Price is required" Component="Price" Popup="true" Style="position: absolute" />
+                                </EditTemplate>
+                                <Template Context="detail">
+                                    @string.Format(new System.Globalization.CultureInfo("hr-HR"), "{0:C}", detail.Price)
+                                </Template>
+                                <FooterTemplate>
+                                    <b>@string.Format(new System.Globalization.CultureInfo("hr-HR"), "{0:C}", SelectedCalculations?.FirstOrDefault()?.CalculationItems.Sum(o => o.Price))</b>
+                                </FooterTemplate>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn TItem="Domain.Entities.CalculationItem" Context="calculationDetail" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="120px">
+                                <Template Context="detail">
+                                    <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Primary" Class="m-1" Click="@(args => EditRowDetail(detail))" @onclick:stopPropagation="true">
+                                    </RadzenButton>
+                                </Template>
+                                <EditTemplate Context="detail">
+                                    <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Primary" Class="m-1" Click="@((args) => SaveRowDetail(detail))">
+                                    </RadzenButton>
+                                    <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Class="m-1" Click="@((args) => CancelEditDetail(detail))">
+                                    </RadzenButton>
+                                </EditTemplate>
+                            </RadzenDataGridColumn>
+                        </Columns>
+                    </RadzenDataGrid>
+                </RadzenTabsItem>
+
+            </Tabs>
+        </RadzenTabs>
+    </Template>
+    <Columns>
+        <RadzenDataGridColumn TItem="Domain.Entities.Calculation" Property="Id" Title="Calculation ID" Width="120px" />
+        <RadzenDataGridColumn TItem="Domain.Entities.Calculation" Property="Price" Title="Price" Width="200px">
+            <EditTemplate Context="calculation">
+                <RadzenNumeric TValue="decimal" @bind-Value="calculation.Price" Style="width:100%; display: block" Name="Price" />
+                <RadzenRequiredValidator Text="Price is required" Component="Price" Popup="true" Style="position: absolute" />
+            </EditTemplate>
+            <Template Context="calculation">
+                @string.Format(new System.Globalization.CultureInfo("hr-HR"), "{0:C}", calculation.Price)
+            </Template>
+            <FooterTemplate>
+                <b>@string.Format(new System.Globalization.CultureInfo("hr-HR"), "{0:C}", SelectedCalculations?.FirstOrDefault()?.CalculationItems.Sum(o => o.Price))</b>
+            </FooterTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Domain.Entities.Calculation" Property="AddedOn" Title="Added Date" Width="200px">
+            <Template Context="calculation">
+                @String.Format("{0:dd/MM/yyyy}", calculation.AddedOn)
+            </Template>
+        </RadzenDataGridColumn>
+
+        <RadzenDataGridColumn TItem="Domain.Entities.Calculation" Context="calculation" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="120px">
+            <Template Context="calculation">
+                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Primary" Class="m-1" Click="@(args => EditRow(calculation))" @onclick:stopPropagation="true">
+                </RadzenButton>
+            </Template>
+            <EditTemplate Context="calculation">
+                <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Primary" Class="m-1" Click="@((args) => SaveRow(calculation))">
+                </RadzenButton>
+                <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Class="m-1" Click="@((args) => CancelEdit(calculation))">
+                </RadzenButton>
+            </EditTemplate>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Domain.Entities.Calculation" Context="calculation" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="60px">
+            <Template Context="calculation">
+                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Class="m-1" Click="@(args => DeleteRow(calculation))" @onclick:stopPropagation="true">
+                </RadzenButton>
+            </Template>
+            <EditTemplate Context="calculation">
+                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Class="m-1" Click="@(args => DeleteRow(calculation))">
+                </RadzenButton>
+            </EditTemplate>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+@code {
+    IList<Domain.Entities.Calculation> SelectedCalculations { get; set; }
+
+    IEnumerable<Domain.Entities.Calculation> _calculations = new List<Domain.Entities.Calculation>();
+
+    RadzenDataGrid<Domain.Entities.Calculation> grid;
+    RadzenDataGrid<Domain.Entities.CalculationItem> gridDetail;
+
+    Domain.Entities.Calculation calculationToInsert;
+    Domain.Entities.CalculationItem detailToInsert;
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+    private bool visibleToAdmin { get; set; } = false;
+    [Parameter]
+    public int ShoeId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        if (ShoeId != 0)
+        {
+            _calculations = await calculationService.GetAllCalculations(ShoeId);
+            if (_calculations.Count() == 0)
+            {
+                var dummyCalculation = await CreateNewCalculation();
+                SelectedCalculations = new List<Domain.Entities.Calculation>() { dummyCalculation };
+                SelectedCalculations.First().CalculationItems = await calculationService.CreateCalcItemsFromShoe(ShoeId, SelectedCalculations.First().Id);
+            }
+            else
+            {
+                // catch items for that calc
+                SelectedCalculations = new List<Domain.Entities.Calculation>() { _calculations.First() };
+                await FetchCalculationItems(SelectedCalculations.FirstOrDefault());
+            }
+        }
+        visibleToAdmin = await CheckAuth();
+    }
+
+    private async Task<Domain.Entities.Calculation> CreateNewCalculation()
+    {
+        Domain.Entities.Calculation dummy = new Domain.Entities.Calculation();
+        dummy.Price = 0.00m;
+        dummy.AddedOn = DateTime.Now;
+        dummy.ShoeId = ShoeId;
+        var dummyCalc = await calculationService.AddCalculation(dummy);
+        return dummy;
+    }
+
+    private async Task<bool> CheckAuth()
+    {
+        var authState = await authenticationState;
+        var user = authState?.User;
+
+        if (user?.Identity?.IsAuthenticated == true && user.IsInRole("Admin"))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private async Task FetchCalculationItems(Domain.Entities.Calculation calculation)
+    {
+        var calcItems = await calculationService.GetAllCalculationItemsForCalculation(calculation.Id);
+        if (calcItems.Count() != 0)
+        {
+            SelectedCalculations.FirstOrDefault().CalculationItems = calcItems;
+        }
+        else
+        {
+            SelectedCalculations.FirstOrDefault().CalculationItems = await calculationService.CreateCalcItemsFromShoe(ShoeId, SelectedCalculations.FirstOrDefault().Id);
+        }
+    }
+
+    void RowRender(RowRenderEventArgs<Domain.Entities.Calculation> args)
+    {
+        args.Expandable = true;
+        // if (args.Data.CalculationItems != null)
+        //     args.Expandable = args.Data.CalculationItems.Count > 0;
+    }
+
+    void RowRenderDetail(RowRenderEventArgs<Domain.Entities.CalculationItem> args)
+    {
+        //if (args.Data != null)
+            args.Expandable = true;
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            grid.ExpandRow(_calculations.FirstOrDefault());
+            StateHasChanged();
+        }
+
+        base.OnAfterRender(firstRender);
+    }
+
+
+    private async Task InsertRow()
+    {
+        calculationToInsert = new Domain.Entities.Calculation();
+        await grid.InsertRow(calculationToInsert);
+
+    }
+    private async Task InsertDetailRow()
+    {
+        detailToInsert = new Domain.Entities.CalculationItem();
+        await gridDetail.InsertRow(detailToInsert);
+    }
+
+    private async Task OnCreateRow(Domain.Entities.Calculation calculation)
+    {
+        if (calculation != null)
+        {
+            await calculationService.AddCalculation(calculation);
+
+        }
+
+
+    }
+    private async Task OnCreateRowDetail(Domain.Entities.CalculationItem calculationDetail)
+    {
+        if (calculationDetail != null)
+        {
+            await calculationService.AddCalculationItem(calculationDetail);
+        }
+    }
+    private async Task OnUpdateRow(Domain.Entities.Calculation calculation)
+    {
+        if (calculation == calculationToInsert)
+        {
+            calculationToInsert = null;
+        }
+
+        if (calculation != null)
+        {
+            await calculationService.ModifyCalculation(calculation);
+
+        }
+    }
+    private async Task OnUpdateRowDetail(Domain.Entities.CalculationItem calculationDetail)
+    {
+        if (calculationDetail == detailToInsert)
+        {
+            detailToInsert = null;
+        }
+        if (calculationDetail != null)
+        {
+            await calculationService.ModifyCalculationItem(calculationDetail);
+
+        }
+    }
+
+    private void CancelEdit(Domain.Entities.Calculation calculation)
+    {
+        if (calculation == calculationToInsert)
+        {
+            calculationToInsert = null;
+        }
+
+        grid.CancelEditRow(calculation);
+
+
+    }
+    private void CancelEditDetail(Domain.Entities.CalculationItem calculationDetail)
+    {
+        if (calculationDetail == detailToInsert)
+        {
+            detailToInsert = null;
+        }
+
+        gridDetail.CancelEditRow(calculationDetail);
+
+
+    }
+
+    async Task DeleteRow(Domain.Entities.Calculation calculation)
+    {
+        if (calculation == calculationToInsert)
+        {
+            calculationToInsert = null;
+        }
+
+        if (_calculations.Contains(calculation))
+        {
+            await grid.Reload();
+        }
+        else
+        {
+            grid.CancelEditRow(calculation);
+        }
+    }
+
+    async Task DeleteRowDetail(Domain.Entities.CalculationItem calculationDetail)
+    {
+        if (calculationDetail == detailToInsert)
+        {
+            detailToInsert = null;
+        }
+
+
+        if (_calculations.All(x => x.CalculationItems.Contains(calculationDetail)))
+        {
+            await gridDetail.Reload();
+        }
+        else
+        {
+            gridDetail.CancelEditRow(calculationDetail);
+        }
+    }
+    async Task EditRow(Domain.Entities.Calculation calculation)
+    {
+        await grid.EditRow(calculation);
+    }
+
+    async Task EditRowDetail(Domain.Entities.CalculationItem calculationDetail)
+    {
+        await gridDetail.EditRow(calculationDetail);
+    }
+    async Task SaveRow(Domain.Entities.Calculation calculation)
+    {
+        if (calculation == calculationToInsert)
+        {
+            calculationToInsert = null;
+        }
+
+        await grid.UpdateRow(calculation);
+    }
+
+    async Task SaveRowDetail(Domain.Entities.CalculationItem calculationDetail)
+    {
+        if (calculationDetail == detailToInsert)
+        {
+            detailToInsert = null;
+        }
+
+        await gridDetail.UpdateRow(calculationDetail);
+    }
+}
+
+
+

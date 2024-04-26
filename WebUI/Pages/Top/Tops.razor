@@ -15,18 +15,18 @@
         </CardHeaderContent>
     </MudCardHeader>
     <MudCardContent Style="width:500px">
-        <MudTextField @bind-Value="top.Name" Label="Name" Variant="Variant.Text" Required="true" RequiredError="Name is required!"></MudTextField>
-        <MudTextField @bind-Value="top.NumberOfUnits" Label="Number of units" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
-        <MudSelect @bind-Value="top.Units" For="@(()=>top.Units)" FullWidth="true" Variant="Variant.Text" Margin="Margin.Normal" Label="Unit">
+        <MudTextField @bind-Value="top.Name" Label="Name" Variant="MudBlazor.Variant.Text" Required="true" RequiredError="Name is required!"></MudTextField>
+        <MudTextField @bind-Value="top.NumberOfUnits" Label="Number of units" Variant="MudBlazor.Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudSelect @bind-Value="top.Units" For="@(()=>top.Units)" FullWidth="true" Variant="MudBlazor.Variant.Text" Margin="Margin.Normal" Label="Unit">
             @foreach (Units item in Enum.GetValues(typeof(Units)))
             {
                 <MudSelectItem Value="@((Units?) item)">@EnumDisplay.GetDisplayText(@item)</MudSelectItem>
             }
         </MudSelect>
-        <MudNumericField @bind-Value="top.ExpensePerUnit" Format="N2" Culture="@_cultureInfo" Label="Expense" HideSpinButtons="true" Variant="Variant.Text"></MudNumericField>
+        <MudNumericField @bind-Value="top.ExpensePerUnit" Format="N2" Culture="@_cultureInfo" Label="Expense" HideSpinButtons="true" Variant="MudBlazor.Variant.Text"></MudNumericField>
         <MudSpacer />
 
-        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Save" Disabled="string.IsNullOrWhiteSpace(top.Name)">Save</MudButton>
+        <MudButton Variant="MudBlazor.Variant.Filled" Color="Color.Success" OnClick="Save" Disabled="string.IsNullOrWhiteSpace(top.Name)">Save</MudButton>
     </MudCardContent>
 </MudCard>
 <br />
@@ -91,7 +91,7 @@
 
     private async Task OpenDialog(int id, string name)
     {
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
+        var options = new MudBlazor.DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
         var parameters = new DialogParameters { ["Data"] = $"{id.ToString()} - {name}" };
         var dialog = DialogService.Show<DeleteModal>("Confirm delete", parameters, options);
 

@@ -15,7 +15,7 @@
         </CardHeaderContent>
     </MudCardHeader>
     <MudCardContent>
-        <MudTextField @bind-Value="decoration.Description" Label="Name" Variant="Variant.Text" Margin="Margin.Normal" Required="true" RequiredError="Description is required!"></MudTextField>
+        <MudTextField @bind-Value="decoration.Description" Label="Name" Variant="MudBlazor.Variant.Text" Margin="Margin.Normal" Required="true" RequiredError="Description is required!"></MudTextField>
         <MudSpacer />
         <MudSelect @bind-Value="decoration.MaterialId" Label="Material">
             <MudSelectItem Value="0" Disabled="true">Select Material</MudSelectItem>
@@ -25,7 +25,7 @@
             }
         </MudSelect>
         <MudSpacer />
-        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Save" Disabled="string.IsNullOrWhiteSpace(decoration.Description)">Save</MudButton>
+        <MudButton Variant="MudBlazor.Variant.Filled" Color="Color.Success" OnClick="Save" Disabled="string.IsNullOrWhiteSpace(decoration.Description)">Save</MudButton>
     </MudCardContent>
 </MudCard>
 <br />
@@ -84,7 +84,7 @@
 
     private async Task OpenDialog(int id, string name)
     {
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
+        var options = new MudBlazor.DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
         var parameters = new DialogParameters { ["Data"] = $"{id.ToString()} - {name}" };
         var dialog = DialogService.Show<DeleteModal>("Confirm delete", parameters, options);
 

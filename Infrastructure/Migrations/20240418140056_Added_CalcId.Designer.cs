@@ -4,6 +4,7 @@ using Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240418140056_Added_CalcId")]
+    partial class Added_CalcId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,15 +36,10 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("AddedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<decimal>("Price")
+                    b.Property<decimal?>("Price")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("ShoeId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("ShoeId");
 
                     b.ToTable("Calculations");
                 });
@@ -233,14 +231,14 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("AddedOn")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("CalculationId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ColorTypeId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("DecorationId")
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
@@ -270,9 +268,9 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ColorTypeId");
+                    b.HasIndex("CalculationId");
 
-                    b.HasIndex("DecorationId");
+                    b.HasIndex("ColorTypeId");
 
                     b.HasIndex("LiningId");
 
@@ -586,15 +584,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Entities.Calculation", b =>
-                {
-                    b.HasOne("Domain.Entities.Shoe", "Shoe")
-                        .WithMany("Calculations")
-                        .HasForeignKey("ShoeId");
-
-                    b.Navigation("Shoe");
-                });
-
             modelBuilder.Entity("Domain.Entities.CalculationItem", b =>
                 {
                     b.HasOne("Domain.Entities.Calculation", "Calculation")
@@ -645,15 +634,15 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.Shoe", b =>
                 {
+                    b.HasOne("Domain.Entities.Calculation", "Calculation")
+                        .WithMany()
+                        .HasForeignKey("CalculationId");
+
                     b.HasOne("Domain.Entities.ColorType", "ColorType")
                         .WithMany()
                         .HasForeignKey("ColorTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("Domain.Entities.Decoration", "Decoration")
-                        .WithMany()
-                        .HasForeignKey("DecorationId");
 
                     b.HasOne("Domain.Entities.Lining", "Lining")
                         .WithMany()
@@ -679,9 +668,9 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("ColorType");
+                    b.Navigation("Calculation");
 
-                    b.Navigation("Decoration");
+                    b.Navigation("ColorType");
 
                     b.Navigation("Lining");
 
@@ -764,11 +753,6 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.Calculation", b =>
                 {
                     b.Navigation("CalculationItems");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Shoe", b =>
-                {
-                    b.Navigation("Calculations");
                 });
 #pragma warning restore 612, 618
         }
