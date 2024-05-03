@@ -34,7 +34,7 @@
             <Tabs>
                 <RadzenTabsItem Text="Calculation Details">
                     <RadzenButton Icon="add_circle_outline" style="margin-bottom: 10px" Text="Add Calculation Item" Click="@InsertDetailRow" Disabled=@(detailToInsert != null) />
-                    <RadzenDataGrid @ref="gridDetail" AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true" Data="@(SelectedCalculations.FirstOrDefault()?.CalculationItems)"
+                    <RadzenDataGrid @ref="gridDetail" AllowFiltering="true" AllowPaging="true" PageSize="10" AllowSorting="true" Data="@(SelectedCalculations.FirstOrDefault()?.CalculationItems)"
                                     TItem="Domain.Entities.CalculationItem" RowUpdate="@OnUpdateRowDetail" RowCreate="@OnCreateRowDetail" RowRender="@RowRenderDetail">
                         <Columns>
                             <RadzenDataGridColumn TItem="Domain.Entities.CalculationItem" Property="Type" Title="Item type">
@@ -46,25 +46,25 @@
                             <RadzenDataGridColumn TItem="Domain.Entities.CalculationItem" Property="Description" Title="Description">
                                 <EditTemplate Context="calculationDetail">
                                     <RadzenTextBox @bind-Value="calculationDetail.Description" Style="width:100%; display: block" Name="Description" />
-                                    <RadzenRequiredValidator Text="Description is required" Component="Description" Popup="true" Style="position:absolute" />
+                                    @* <RadzenRequiredValidator Text="Description is required" Component="Description" Popup="true" Style="position:absolute" /> *@
                                 </EditTemplate>
                             </RadzenDataGridColumn>
                             <RadzenDataGridColumn TItem="Domain.Entities.CalculationItem" Property="Color" Title="Color">
                                 <EditTemplate Context="calculationDetail">
                                     <RadzenTextBox @bind-Value="calculationDetail.Color" Style="width:100%; display: block" Name="Color" />
-                                    <RadzenRequiredValidator Text="Color is required" Component="Color" Popup="true" Style="position:absolute" />
+                                    @* <RadzenRequiredValidator Text="Color is required" Component="Color" Popup="true" Style="position:absolute" /> *@
                                 </EditTemplate>
                             </RadzenDataGridColumn>
                             <RadzenDataGridColumn TItem="Domain.Entities.CalculationItem" Property="Material" Title="Material">
                                 <EditTemplate Context="calculationDetail">
                                     <RadzenTextBox @bind-Value="calculationDetail.Material" Style="width:100%; display: block" Name="Material" />
-                                    <RadzenRequiredValidator Text="Material is required" Component="Material" Popup="true" Style="position:absolute" />
+                                    @* <RadzenRequiredValidator Text="Material is required" Component="Material" Popup="true" Style="position:absolute" /> *@
                                 </EditTemplate>
                             </RadzenDataGridColumn>
                             <RadzenDataGridColumn TItem="Domain.Entities.CalculationItem" Property="Normativ" Title="Normativ">
                                 <EditTemplate Context="calculationDetail">
                                     <RadzenTextBox @bind-Value="calculationDetail.Normativ" Style="width:100%; display: block" Name="Normativ" />
-                                    <RadzenRequiredValidator Text="Normativ is required" Component="Normativ" Popup="true" Style="position:absolute" />
+                                    @* <RadzenRequiredValidator Text="Normativ is required" Component="Normativ" Popup="true" Style="position:absolute" /> *@
                                 </EditTemplate>
                             </RadzenDataGridColumn>
                             <RadzenDataGridColumn TItem="Domain.Entities.CalculationItem" Property="Price" Title="Unit Price">
@@ -170,6 +170,7 @@
                 var dummyCalculation = await CreateNewCalculation();
                 SelectedCalculations = new List<Domain.Entities.Calculation>() { dummyCalculation };
                 SelectedCalculations.First().CalculationItems = await calculationService.CreateCalcItemsFromShoe(ShoeId, SelectedCalculations.First().Id);
+                _calculations = SelectedCalculations;
             }
             else
             {
@@ -227,7 +228,7 @@
     void RowRenderDetail(RowRenderEventArgs<Domain.Entities.CalculationItem> args)
     {
         //if (args.Data != null)
-            args.Expandable = true;
+        args.Expandable = true;
     }
 
     protected override void OnAfterRender(bool firstRender)
@@ -294,7 +295,17 @@
         {
             await calculationService.ModifyCalculationItem(calculationDetail);
 
+            await UpdateCalculationSum(calculationDetail.CalculationId!.Value);
         }
+    }
+
+    private async Task UpdateCalculationSum(int calculationId)
+    {
+        var calculationItemsSum = SelectedCalculations?.FirstOrDefault()?.CalculationItems.Sum(o => o.Price);
+        var calculation = await calculationService.FindCalculation(calculationId);
+        calculation.Price = calculationItemsSum ?? 0.00m;
+
+        await calculationService.ModifyCalculation(calculation);
     }
 
     private void CancelEdit(Domain.Entities.Calculation calculation)
@@ -305,9 +316,8 @@
         }
 
         grid.CancelEditRow(calculation);
-
-
     }
+
     private void CancelEditDetail(Domain.Entities.CalculationItem calculationDetail)
     {
         if (calculationDetail == detailToInsert)
@@ -316,8 +326,6 @@
         }
 
         gridDetail.CancelEditRow(calculationDetail);
-
-
     }
 
     async Task DeleteRow(Domain.Entities.Calculation calculation)

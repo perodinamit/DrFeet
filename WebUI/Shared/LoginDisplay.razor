@@ -3,7 +3,7 @@
 
 <AuthorizeView>
     <Authorized>
-        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Login" Size="Size.Small" Color="Color.Error">
+        <MudButton Variant="MudBlazor.Variant.Filled" StartIcon="@Icons.Material.Filled.Login" Size="Size.Small" Color="Color.Error">
             <a href="Identity/Account/Manage">Hello, @context.User.Identity?.Name!</a>
             <form method="post" action="Identity/Account/Logout">
                 <button type="submit" style="color:aliceblue" class="nav-link btn btn-link">Log out</button>
@@ -13,7 +13,7 @@
 
     </Authorized>
     <NotAuthorized>
-        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Login" Size="Size.Small" Color="Color.Info" href="Identity/Account/Register">Register</MudButton>
-        <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Logout" Size="Size.Small" Color="Color.Success" href="Identity/Account/Login">Log in</MudButton>
+        <MudButton Variant="MudBlazor.Variant.Filled" StartIcon="@Icons.Material.Filled.Login" Size="Size.Small" Color="Color.Info" href="Identity/Account/Register">Register</MudButton>
+        <MudButton Variant="MudBlazor.Variant.Filled" StartIcon="@Icons.Material.Filled.Logout" Size="Size.Small" Color="Color.Success" href="Identity/Account/Login">Log in</MudButton>
     </NotAuthorized>
 </AuthorizeView>
