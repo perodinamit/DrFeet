@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240319135406_IdentityAdded")]
-    partial class IdentityAdded
+    [Migration("20240503131348_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,71 @@ namespace Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("Domain.Entities.Calculation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AddedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("ShoeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ShoeId");
+
+                    b.ToTable("Calculations");
+                });
+
+            modelBuilder.Entity("Domain.Entities.CalculationItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CalculationId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Material")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Normativ")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CalculationId");
+
+                    b.ToTable("CalculationItems");
+                });
 
             modelBuilder.Entity("Domain.Entities.ColorType", b =>
                 {
@@ -48,6 +113,27 @@ namespace Infrastructure.Migrations
                     b.ToTable("ColorTypes");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Decoration", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("MaterialId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MaterialId");
+
+                    b.ToTable("Decorations");
+                });
+
             modelBuilder.Entity("Domain.Entities.Lining", b =>
                 {
                     b.Property<int>("Id")
@@ -62,13 +148,58 @@ namespace Infrastructure.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("MaterialId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("MaterialId");
+
                     b.ToTable("Linings");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Material", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AddedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ColorTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("SKU")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SupplierId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UOM")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ColorTypeId");
+
+                    b.HasIndex("SupplierId");
+
+                    b.ToTable("Materials");
                 });
 
             modelBuilder.Entity("Domain.Entities.Purpose", b =>
@@ -112,6 +243,9 @@ namespace Infrastructure.Migrations
                     b.Property<int>("ColorTypeId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("DecorationId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
@@ -125,6 +259,9 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal?>("Price")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("PurposeId")
                         .HasColumnType("int");
 
@@ -137,6 +274,8 @@ namespace Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ColorTypeId");
+
+                    b.HasIndex("DecorationId");
 
                     b.HasIndex("LiningId");
 
@@ -163,13 +302,52 @@ namespace Infrastructure.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("MaterialId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("MaterialId");
+
                     b.ToTable("Soles");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Supplier", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AddedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ContactPerson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Iban")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Suppliers");
                 });
 
             modelBuilder.Entity("Domain.Entities.Top", b =>
@@ -186,11 +364,25 @@ namespace Infrastructure.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal?>("ExpensePerUnit")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("MaterialId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal?>("NumberOfUnits")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("Units")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("MaterialId");
 
                     b.ToTable("Tops");
                 });
@@ -397,6 +589,63 @@ namespace Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Entities.Calculation", b =>
+                {
+                    b.HasOne("Domain.Entities.Shoe", "Shoe")
+                        .WithMany("Calculations")
+                        .HasForeignKey("ShoeId");
+
+                    b.Navigation("Shoe");
+                });
+
+            modelBuilder.Entity("Domain.Entities.CalculationItem", b =>
+                {
+                    b.HasOne("Domain.Entities.Calculation", "Calculation")
+                        .WithMany("CalculationItems")
+                        .HasForeignKey("CalculationId");
+
+                    b.Navigation("Calculation");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Decoration", b =>
+                {
+                    b.HasOne("Domain.Entities.Material", "Material")
+                        .WithMany()
+                        .HasForeignKey("MaterialId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Material");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Lining", b =>
+                {
+                    b.HasOne("Domain.Entities.Material", "Material")
+                        .WithMany()
+                        .HasForeignKey("MaterialId");
+
+                    b.Navigation("Material");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Material", b =>
+                {
+                    b.HasOne("Domain.Entities.ColorType", "ColorType")
+                        .WithMany()
+                        .HasForeignKey("ColorTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Supplier", "Supplier")
+                        .WithMany()
+                        .HasForeignKey("SupplierId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ColorType");
+
+                    b.Navigation("Supplier");
+                });
+
             modelBuilder.Entity("Domain.Entities.Shoe", b =>
                 {
                     b.HasOne("Domain.Entities.ColorType", "ColorType")
@@ -404,6 +653,10 @@ namespace Infrastructure.Migrations
                         .HasForeignKey("ColorTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("Domain.Entities.Decoration", "Decoration")
+                        .WithMany()
+                        .HasForeignKey("DecorationId");
 
                     b.HasOne("Domain.Entities.Lining", "Lining")
                         .WithMany()
@@ -431,6 +684,8 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("ColorType");
 
+                    b.Navigation("Decoration");
+
                     b.Navigation("Lining");
 
                     b.Navigation("Purpose");
@@ -438,6 +693,24 @@ namespace Infrastructure.Migrations
                     b.Navigation("Sole");
 
                     b.Navigation("Top");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Sole", b =>
+                {
+                    b.HasOne("Domain.Entities.Material", "Material")
+                        .WithMany()
+                        .HasForeignKey("MaterialId");
+
+                    b.Navigation("Material");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Top", b =>
+                {
+                    b.HasOne("Domain.Entities.Material", "Material")
+                        .WithMany()
+                        .HasForeignKey("MaterialId");
+
+                    b.Navigation("Material");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -489,6 +762,16 @@ namespace Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Entities.Calculation", b =>
+                {
+                    b.Navigation("CalculationItems");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Shoe", b =>
+                {
+                    b.Navigation("Calculations");
                 });
 #pragma warning restore 612, 618
         }
