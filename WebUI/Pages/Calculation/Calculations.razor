@@ -85,9 +85,11 @@
                                     </RadzenButton>
                                 </Template>
                                 <EditTemplate Context="detail">
-                                    <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Primary" Class="m-1" Click="@((args) => SaveRowDetail(detail))">
+                                    <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Primary" Class="m-1" Style="width:100%; display: block" Click="@((args) => SaveRowDetail(detail))">
                                     </RadzenButton>
-                                    <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Class="m-1" Click="@((args) => CancelEditDetail(detail))">
+                                    <RadzenButton Icon="delete"  ButtonStyle="ButtonStyle.Danger" Class="m-1" Style="width:100%; display: block" Click="@((args) => DeleteCalculationItem(detail.Id))">
+                                    </RadzenButton>
+                                    <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Light" Class="m-1" Style="width:100%; display: block" Click="@((args) => CancelEditDetail(detail))">
                                     </RadzenButton>
                                 </EditTemplate>
                             </RadzenDataGridColumn>
@@ -389,6 +391,13 @@
         }
 
         await gridDetail.UpdateRow(calculationDetail);
+    }
+
+    async Task DeleteCalculationItem(int calculationItemId)
+    {
+        await calculationService.DeleteCalculationItem(calculationItemId);
+
+        await gridDetail.Reload();
     }
 }
 

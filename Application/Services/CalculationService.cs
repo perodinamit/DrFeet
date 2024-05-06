@@ -13,20 +13,22 @@ namespace Application.Services
         {
             this.context = context;
         }
+
+
         public async Task<List<Calculation>> GetAllCalculations(int id)
         {
             return await context.Calculations
                 .Where(x => x.ShoeId == id)
-                .AsSplitQuery()
                 .ToListAsync();
         }
+
         public async Task<List<CalculationItem>> GetAllCalculationItemsForCalculation(int id)
         {
             return await context.CalculationItems
                 .Where(x => x.CalculationId == id)
-                .AsSplitQuery()
                 .ToListAsync();
         }
+
         public async Task<bool> Delete(int id)
         {
             var toDelete = await context.Calculations.FindAsync(id);
@@ -43,11 +45,14 @@ namespace Application.Services
 
         public async Task<Calculation> FindCalculation(int id)
         {
-            return await context.Calculations
+            var calculation = await context.Calculations
                .Include(x => x.CalculationItems)
                .AsSplitQuery()
                .FirstOrDefaultAsync();
+
+            return calculation;
         }
+
         public async Task<int> AddCalculation(Calculation newCalculation)
         {
             context.Calculations.Add(newCalculation);
@@ -55,6 +60,7 @@ namespace Application.Services
 
             return newCalculation.Id;
         }
+
         public async Task<bool> ModifyCalculation(Calculation modifiedCalculation)
         {
             var existingCalculation = await context.Calculations.FindAsync(modifiedCalculation.Id);
@@ -69,12 +75,14 @@ namespace Application.Services
 
             return true;
         }
+
         public async Task<CalculationItem> FindCalculationItem(int id)
         {
-            return await context.CalculationItems
-               .AsSplitQuery()
-               .FirstOrDefaultAsync();
+            var calculationItems = await context.CalculationItems.FirstOrDefaultAsync();
+
+            return calculationItems;
         }
+
         public async Task<bool> DeleteCalculationItem(int id)
         {
             var toDelete = await context.CalculationItems.FindAsync(id);
@@ -88,6 +96,7 @@ namespace Application.Services
 
             return true;
         }
+
         public async Task<bool> AddCalculationItem(CalculationItem newCalculation)
         {
             context.CalculationItems.Add(newCalculation);
@@ -95,6 +104,7 @@ namespace Application.Services
 
             return true;
         }
+
         public async Task<bool> ModifyCalculationItem(CalculationItem modifiedCalculation)
         {
             var existingCalculation = await context.CalculationItems.FindAsync(modifiedCalculation.Id);
@@ -126,8 +136,139 @@ namespace Application.Services
                   .Where(x => x.Id == shoeId)
                   .AsSplitQuery()
                   .ToListAsync();
+
             var calcItems = new List<CalculationItem>();
 
+            CalculationItem topItem = await CreateTop(calcId, shoes);
+            CalculationItem soleItem = await CreateSole(calcId, shoes);
+            CalculationItem liningItem = await CreateLining(calcId, shoes);
+            CalculationItem decorationItem = await CreateDecoration(calcId, shoes);
+            CalculationItem boxItem = await CreateBoxItem(calcId);
+            CalculationItem boxTransportItem = await CreateBoxTransportItem(calcId);
+
+            calcItems.Add(topItem);
+            calcItems.Add(soleItem);
+            calcItems.Add(liningItem);
+            calcItems.Add(decorationItem);
+            calcItems.Add(boxItem);
+            calcItems.Add(boxTransportItem);
+
+            return calcItems;
+        }
+
+        private async Task<CalculationItem> CreateBoxTransportItem(int calcId)
+        {
+            var boxTransportItem = new CalculationItem
+            {
+                Type = "Box",
+                Description = "Transport Box",
+                Material = "Paper",
+                Color = string.Empty,
+                Price = 0.6m,
+                Normativ = "kom",
+                CalculationId = calcId
+            };
+            await AddCalculationItem(boxTransportItem);
+            return boxTransportItem;
+        }
+
+        private async Task<CalculationItem> CreateBoxItem(int calcId)
+        {
+            var boxItem = new CalculationItem
+            {
+                Type = "Box",
+                Description = "Box Pair",
+                Material = "Paper",
+                Color = string.Empty,
+                Price = 0.2m,
+                Normativ = "kom",
+                CalculationId = calcId
+            };
+            await AddCalculationItem(boxItem);
+            return boxItem;
+        }
+
+        private async Task<CalculationItem> CreateDecoration(int calcId, List<Shoe> shoes)
+        {
+            var decorationItem = new CalculationItem();
+            if (shoes.FirstOrDefault()!.Decoration == null)
+            {
+                decorationItem.Type = "Decoration";
+                decorationItem.Description = "Decoration";
+                decorationItem.Price = 0.00m;
+                decorationItem.Material = string.Empty;
+                decorationItem.Normativ = "";
+                decorationItem.Color = string.Empty;
+                decorationItem.CalculationId = calcId;
+                await AddCalculationItem(decorationItem);
+            }
+            else
+            {
+                Decoration decorationShoe = shoes.First().Decoration!;
+                decorationItem.Type = "Decoration";
+                decorationItem.Description = decorationShoe.Description ?? "Decoration";
+                decorationItem.Price = decorationShoe.Material?.Price ?? 0.00m;
+                decorationItem.Material = decorationShoe.Material?.Description ?? string.Empty;
+                decorationItem.Normativ = "";
+                decorationItem.Color = decorationShoe.Material?.ColorType?.Name ?? "";
+                decorationItem.CalculationId = calcId;
+                await AddCalculationItem(decorationItem);
+            }
+
+            return decorationItem;
+        }
+
+        private async Task<CalculationItem> CreateLining(int calcId, List<Shoe> shoes)
+        {
+            var liningItem = new CalculationItem();
+            Lining liningShoe = shoes.FirstOrDefault()!.Lining!;
+            liningItem.Type = "Lining";
+            liningItem.Description = liningShoe.Name ?? "Lining";
+            if (liningShoe.Material == null)
+            {
+                liningItem.Material = string.Empty;
+                liningItem.Color = string.Empty;
+                liningItem.Price = 0.00m;
+            }
+            else
+            {
+                liningItem.Price = liningShoe.Material.Price ?? 0.00m;
+                liningItem.Material = liningShoe.Material!.Description ?? string.Empty;
+                liningItem.Color = liningShoe.Material?.ColorType?.Name ?? "";
+            }
+
+            liningItem.Normativ = "";
+            liningItem.CalculationId = calcId;
+            await AddCalculationItem(liningItem);
+            return liningItem;
+        }
+
+        private async Task<CalculationItem> CreateSole(int calcId, List<Shoe> shoes)
+        {
+            var soleItem = new CalculationItem();
+            Sole soleShoe = shoes.FirstOrDefault()!.Sole;
+            soleItem.Type = "Sole";
+            soleItem.Description = soleShoe.Name ?? "Sole";
+            if (soleShoe.Material == null)
+            {
+                soleItem.Material = string.Empty;
+                soleItem.Color = string.Empty;
+                soleItem.Price = 0.00m;
+            }
+            else
+            {
+                soleItem.Price = soleShoe.Material.Price ?? 0.00m;
+                soleItem.Material = soleShoe.Material!.Description ?? string.Empty;
+                soleItem.Color = soleShoe.Material?.ColorType?.Name ?? "";
+            }
+            soleItem.Normativ = "";
+            soleItem.CalculationId = calcId;
+            await AddCalculationItem(soleItem);
+            return soleItem;
+        }
+
+        private async Task<CalculationItem> CreateTop(int calcId, List<Shoe> shoes)
+        {
             var topItem = new CalculationItem();
             Top topShoe = shoes.FirstOrDefault()!.Top;
             topItem.Type = "Top";
@@ -148,100 +289,7 @@ namespace Application.Services
             topItem.Normativ = "";
             topItem.CalculationId = calcId;
             await AddCalculationItem(topItem);
-
-            var soleItem = new CalculationItem();
-            Sole soleShoe = shoes.FirstOrDefault()!.Sole;
-            soleItem.Type = "Sole";
-            soleItem.Description = soleShoe.Name ?? "Sole";
-            if (soleShoe.Material == null)
-            {
-                soleItem.Material = string.Empty;
-                soleItem.Color = string.Empty;
-                soleItem.Price = 0.00m;
-            }
-            else
-            {
-                soleItem.Price = soleShoe.Material.Price ?? 0.00m;
-                soleItem.Material = soleShoe.Material!.Description ?? string.Empty;
-                soleItem.Color = soleShoe.Material.ColorType.Name;
-            }
-            soleItem.Normativ = "";
-            soleItem.CalculationId = calcId;
-            await AddCalculationItem(soleItem);
-
-            var liningItem = new CalculationItem();
-            Lining liningShoe = shoes.FirstOrDefault()!.Lining!;
-            liningItem.Type = "Lining";
-            liningItem.Description = liningShoe.Name ?? "Lining";
-            if (liningShoe.Material == null)
-            {
-                liningItem.Material = string.Empty;
-                liningItem.Color = string.Empty;
-                liningItem.Price = 0.00m;
-            }
-            else
-            {
-                liningItem.Price = liningShoe.Material.Price ?? 0.00m;
-                liningItem.Material = liningShoe.Material!.Description ?? string.Empty;
-                liningItem.Color = liningShoe.Material.ColorType.Name;
-            }
-
-            liningItem.Normativ = "";
-            liningItem.CalculationId = calcId;
-            await AddCalculationItem(liningItem);
-
-            var decorationItem = new CalculationItem();
-            if (shoes.FirstOrDefault()!.Decoration == null)
-            {
-                decorationItem.Type = "Decoration";
-                decorationItem.Description = "Decoration";
-                decorationItem.Price = 0.00m;
-                decorationItem.Material = string.Empty;
-                decorationItem.Normativ = "";
-                decorationItem.Color = string.Empty;
-                decorationItem.CalculationId = calcId;
-                await AddCalculationItem(decorationItem);
-            }
-            else
-            {
-                Decoration decorationShoe = shoes.FirstOrDefault()!.Decoration;
-                decorationItem.Type = "Decoration";
-                decorationItem.Description = decorationShoe.Description ?? "Decoration";
-                decorationItem.Price = decorationShoe.Material.Price ?? 0.00m;
-                decorationItem.Material = decorationShoe.Material!.Description ?? string.Empty;
-                decorationItem.Normativ = "";
-                decorationItem.Color = decorationShoe.Material.ColorType.Name;
-                decorationItem.CalculationId = calcId;
-                await AddCalculationItem(decorationItem);
-            }
-
-            var boxItem = new CalculationItem();
-            boxItem.Type = "Box";
-            boxItem.Description = "Box Pair";
-            boxItem.Material = "Paper";
-            boxItem.Color = string.Empty;
-            boxItem.Price = 0.2m;
-            boxItem.Normativ = "kom";
-            boxItem.CalculationId = calcId;
-            await AddCalculationItem(boxItem);
-
-            var boxTransportItem = new CalculationItem();
-            boxTransportItem.Type = "Box";
-            boxTransportItem.Description = "Transport Box";
-            boxTransportItem.Material = "Paper";
-            boxTransportItem.Color = string.Empty;
-            boxTransportItem.Price = 0.6m;
-            boxTransportItem.Normativ = "kom";
-            boxTransportItem.CalculationId = calcId;
-            await AddCalculationItem(boxTransportItem);
-
-            calcItems.Add(topItem);
-            calcItems.Add(soleItem);
-            calcItems.Add(liningItem);
-            calcItems.Add(decorationItem);
-            calcItems.Add(boxItem);
-            calcItems.Add(boxTransportItem);
-            return calcItems;
+            return topItem;
         }
     }
 }
