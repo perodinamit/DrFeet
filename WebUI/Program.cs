@@ -11,6 +11,7 @@ using Serilog;
 using WebUI.Areas.Identity;
 using QuestPDF.Infrastructure;
 using System.Configuration;
+using Infrastructure.ErrorHandling;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -75,6 +76,8 @@ QuestPDF.Settings.License = LicenseType.Community;
 QuestPDF.Settings.EnableCaching = true;
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
