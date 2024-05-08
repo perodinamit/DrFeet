@@ -55,6 +55,9 @@ builder.Services.AddScoped<IMaterialRepository, MaterialRepository>();
 builder.Services.AddScoped<IGenericRepository<Supplier>, SupplierRepository>();
 builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
 builder.Services.AddScoped<ICalculationRepository, CalculationService>();
+builder.Services.AddScoped<IGenericRepository<Miscellaneous>, MiscellaneousRepository>();
+builder.Services.AddScoped<IMiscellaneousRepository, MiscellaneousRepository>();
+
 
 builder.Services.AddScoped<TopService>();
 builder.Services.AddScoped<ColorService>();
