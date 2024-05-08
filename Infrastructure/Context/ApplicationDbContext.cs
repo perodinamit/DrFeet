@@ -26,5 +26,6 @@ namespace Infrastructure.Context
         public DbSet<Supplier> Suppliers { get; set; }
         public DbSet<Calculation> Calculations { get; set; }
         public DbSet<CalculationItem> CalculationItems { get; set; }
+        public DbSet<Miscellaneous> Miscellaneouses { get; set; }
     }
 }
