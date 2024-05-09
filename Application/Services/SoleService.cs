@@ -44,3 +44,4 @@ namespace Application.Services
         }
     }
 }
+//dodati koeficijent za svaku sastavnicu po kojoj će se računati dalje kalkulacija

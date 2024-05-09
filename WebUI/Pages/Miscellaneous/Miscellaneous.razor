@@ -1,0 +1,153 @@
+﻿@page "/miscellaneouses"
+
+@using Domain
+@using Domain.Enums
+@using WebUI.Pages.Shared
+@using System.Globalization
+@inject Application.Services.MiscellaneousService miscellaneousService
+@inject MudBlazor.ISnackbar snackBar
+@inject IDialogService DialogService
+
+
+
+<MudCard Elevation="25">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">Add / Edit Miscellaneouses</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent Style="width:500px">
+        <MudTextField @bind-Value="miscellaneous.Name" Label="Name" Variant="MudBlazor.Variant.Text" Required="true" RequiredError="Name is required!"></MudTextField>
+        <MudSelect @bind-Value="miscellaneous.Units" For="@(()=>miscellaneous.Units)" FullWidth="true" Variant="MudBlazor.Variant.Text" Margin="Margin.Normal" Label="Unit">
+            @foreach (Units item in Enum.GetValues(typeof(Units)))
+            {
+                <MudSelectItem Value="@((Units?) item)">@EnumDisplay.GetDisplayText(@item)</MudSelectItem>
+            }
+        </MudSelect>
+        <MudNumericField @bind-Value="miscellaneous.ExpensePerUnit" Format="N2" Culture="@_cultureInfo" Label="Expense" HideSpinButtons="true" Variant="MudBlazor.Variant.Text"></MudNumericField>
+        <MudSpacer />
+
+        <MudButton Variant="MudBlazor.Variant.Filled" Color="Color.Success" OnClick="Save" Disabled="string.IsNullOrWhiteSpace(miscellaneous.Name)">Save</MudButton>
+    </MudCardContent>
+</MudCard>
+<br />
+
+
+
+<MudTable Elevation="5" @ref="@_table" Items="@miscellaneouses" RowsPerPage="10" Hover="true" LoadingProgressColor="Color.Info" Filter="new Func<Domain.Entities.Miscellaneous, bool>(Search)" @bind-technology="miscellaneous">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Miscellaneouses</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="searchString" Placeholder="Search for miscellaneouses..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh hidden>Id</MudTh>
+        <MudTh>Name</MudTh>
+        <MudTh>Price</MudTh>
+        <MudTh>Added</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Id" hidden>@context.Id</MudTd>
+        <MudTd DataLabel="Name">@context.Name</MudTd>
+        @if (context.ExpensePerUnit.HasValue && context.Units.HasValue)
+        {
+            <MudTd DataLabel="Price">@context.ExpensePerUnit € / @EnumDisplay.GetDisplayText(@context.Units)</MudTd>
+        }
+        else
+        {
+            <MudTd DataLabel="Price">-</MudTd>
+        }
+        <MudTd DataLabel="DateAdded">@context.AddedOn.ToString("dd.MM.yyyy")</MudTd>
+        <MudTd DataLabel="">
+            <MudFab @onclick="@(()=>OpenDialog(context.Id, context.Name))" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small"></MudFab>
+
+        </MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudPagination SelectedChanged="PageChanged" Count="@((_table.GetFilteredItemsCount() + _table.RowsPerPage - 1) / _table.RowsPerPage)" Class="pa-4" />
+    </PagerContent>
+</MudTable>
+
+
+@code
+{
+    private string searchString = "";
+    private Domain.Entities.Miscellaneous miscellaneous = new();
+    private IEnumerable<Domain.Entities.Miscellaneous> miscellaneouses = new List<Domain.Entities.Miscellaneous>();
+    private MudTable<Domain.Entities.Miscellaneous> _table;
+    private CultureInfo _cultureInfo = CultureInfo.GetCultureInfo("hr-HR");
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var miscellaneousList = await GetMiscellaneouses();
+        miscellaneouses = miscellaneousList.ToList();
+    }
+
+    private void PageChanged(int i)
+    {
+        _table.NavigateTo(i - 1);
+    }
+
+    private async Task OpenDialog(int id, string name)
+    {
+        var options = new MudBlazor.DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true, DisableBackdropClick = true };
+        var parameters = new DialogParameters { ["Data"] = $"{id.ToString()} - {name}" };
+        var dialog = DialogService.Show<DeleteModal>("Confirm delete", parameters, options);
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            var response = await miscellaneousService.DeleteMiscellaneous(id);
+            snackBar.Add("Top deleted", Severity.Success);
+        }
+
+
+        await RefreshTable();
+    }
+
+    private async Task RefreshTable()
+    {
+        miscellaneouses = await GetMiscellaneouses();
+        StateHasChanged(); // This line is needed to notify Blazor that the state has changed and it should re-render the component
+    }
+
+
+    private async Task<IEnumerable<Domain.Entities.Miscellaneous>> GetMiscellaneouses()
+    {
+        return await miscellaneousService.GetAllMiscellaneouses();
+    }
+
+    private bool Search(Domain.Entities.Miscellaneous miscellaneous)
+    {
+        if (miscellaneous.Name.ToLower().Contains(searchString.ToLower()))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private async Task Save()
+    {
+        if (miscellaneous.Units == 0)
+        {
+            miscellaneous.Units = null;
+        }
+
+        await miscellaneousService.AddMiscellaneous(miscellaneous);
+        miscellaneous = new();
+        snackBar.Add("Miscellaneous saved", Severity.Success);
+
+        await RefreshTable();
+    }
+
+    private async void Delete(int id)
+    {
+        await miscellaneousService.DeleteMiscellaneous(id);
+        snackBar.Add("Miscellaneous deleted", Severity.Success);
+
+        await RefreshTable();
+    }
+}
