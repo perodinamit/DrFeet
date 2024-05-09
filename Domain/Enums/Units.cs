@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Domain.Enums
 {
@@ -14,7 +9,9 @@ namespace Domain.Enums
         [Display(Name ="m2")]
         SquareMeters,
         [Display(Name = "Meters")]
-        Meters
+        Meters,
+        [Display(Name = "Box")]
+        Box,
     }
 
     public class EnumDisplay

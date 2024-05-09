@@ -71,6 +71,7 @@ builder.Services.AddScoped<DecorationService>();
 builder.Services.AddScoped<MaterialService>();
 builder.Services.AddScoped<SupplierService>();
 builder.Services.AddScoped<CalculationService>();
+builder.Services.AddScoped<MiscellaneousService>();
 
 builder.Services.AddMudServices();
 builder.Services.AddControllersWithViews();
