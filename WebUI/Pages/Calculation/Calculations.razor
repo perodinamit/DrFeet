@@ -108,7 +108,7 @@
                 <RadzenRequiredValidator Text="Price is required" Component="Price" Popup="true" Style="position: absolute" />
             </EditTemplate>
             <Template Context="calculation">
-                @string.Format(new System.Globalization.CultureInfo("hr-HR"), "{0:C}", calculation.Price)
+                @string.Format(new System.Globalization.CultureInfo("hr-HR"), "{0:C}", SelectedCalculations?.FirstOrDefault()?.CalculationItems.Sum(o => o.Price)))
             </Template>
             <FooterTemplate>
                 <b>@string.Format(new System.Globalization.CultureInfo("hr-HR"), "{0:C}", SelectedCalculations?.FirstOrDefault()?.CalculationItems.Sum(o => o.Price))</b>
@@ -295,9 +295,9 @@
         }
         if (calculationDetail != null)
         {
+            await UpdateCalculationSum(calculationDetail.CalculationId!.Value);
             await calculationService.ModifyCalculationItem(calculationDetail);
 
-            await UpdateCalculationSum(calculationDetail.CalculationId!.Value);
         }
     }
 
@@ -305,6 +305,7 @@
     {
         var calculationItemsSum = SelectedCalculations?.FirstOrDefault()?.CalculationItems.Sum(o => o.Price);
         var calculation = await calculationService.FindCalculation(calculationId);
+
         calculation.Price = calculationItemsSum ?? 0.00m;
 
         await calculationService.ModifyCalculation(calculation);

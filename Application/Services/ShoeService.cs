@@ -9,10 +9,11 @@ namespace Application.Services
     public class ShoeService : IShoeRepository
     {
         private readonly ApplicationDbContext context;
-
-        public ShoeService(ApplicationDbContext context)
+        private readonly ICalculationRepository calculationRepository;
+        public ShoeService(ApplicationDbContext context, ICalculationRepository calculationRepository)
         {
             this.context = context;
+            this.calculationRepository = calculationRepository;
         }
 
 
@@ -42,11 +43,31 @@ namespace Application.Services
                 return false;
             }
 
+            RemoveCalculations(id);
+
             context.Shoes.Remove(toDelete);
             context.SaveChanges();
 
             return true;
         }
+
+        private void RemoveCalculations(int id)
+        {
+            var calculation = context.Calculations.FirstOrDefault(x => x.ShoeId == id);
+            if (calculation is not null)
+            {
+                var calculationItem = context.CalculationItems
+                    .Where(x => x.CalculationId == calculation.Id);
+
+                if (calculationItem is not null)
+                {
+                    context.RemoveRange(calculationItem);
+                }
+
+                context.Calculations.Remove(calculation);
+            }
+        }
+
         public async Task<bool> AddShoe(Shoe newShoe)
         {         
             context.Shoes.Add(newShoe);

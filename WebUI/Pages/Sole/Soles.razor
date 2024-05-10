@@ -1,6 +1,8 @@
 ﻿@page "/soles"
 
 @using Domain
+@using Domain.Enums
+@using System.Globalization
 @using WebUI.Pages.Shared
 @inject Application.Services.SoleService soleService
 @inject MudBlazor.ISnackbar snackBar
@@ -14,6 +16,13 @@
     </MudCardHeader>
     <MudCardContent>
         <MudTextField @bind-Value="sole.Name" Label="Name" Variant="MudBlazor.Variant.Text" Margin="Margin.Normal" Required="true" RequiredError="Name is required!"></MudTextField>
+        <MudSelect @bind-Value="sole.Units" For="@(()=>sole.Units)" FullWidth="true" Variant="MudBlazor.Variant.Text" Margin="Margin.Normal" Label="Unit">
+            @foreach (Units item in Enum.GetValues(typeof(Units)))
+            {
+                <MudSelectItem Value="@((Units?) item)">@EnumDisplay.GetDisplayText(@item)</MudSelectItem>
+            }
+        </MudSelect>
+        <MudNumericField @bind-Value="sole.ExpensePerUnit" Format="N2" Culture="@_cultureInfo" Label="Expense per unit" HideSpinButtons="true" Variant="MudBlazor.Variant.Text"></MudNumericField>
         <MudSpacer />
 
         <MudButton Variant="MudBlazor.Variant.Filled" Color="Color.Success" OnClick="Save" Disabled="string.IsNullOrWhiteSpace(sole.Name)">Save</MudButton>
@@ -30,13 +39,22 @@
     <HeaderContent>
         <MudTh hidden>Id</MudTh>
         <MudTh>Name</MudTh>
+        <MudTh>Price</MudTh>
         <MudTh>Added</MudTh>
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="Id" hidden>@context.Id</MudTd>
         <MudTd DataLabel="Name">@context.Name</MudTd>
-            <MudTd DataLabel="DateAdded">@context.AddedOn.ToString("dd.MM.yyyy")</MudTd>
+        @if (context.ExpensePerUnit.HasValue && context.Units.HasValue)
+        {
+            <MudTd DataLabel="Price">@context.ExpensePerUnit € / @EnumDisplay.GetDisplayText(@context.Units)</MudTd>
+        }
+        else
+        {
+            <MudTd DataLabel="Price">-</MudTd>
+        }
+        <MudTd DataLabel="DateAdded">@context.AddedOn.ToString("dd.MM.yyyy")</MudTd>
         <MudTd DataLabel="">
             <MudFab @onclick="@(()=>OpenDialog(context.Id, context.Name))" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small"></MudFab>
         </MudTd>
@@ -54,6 +72,7 @@
     private Domain.Entities.Sole sole = new();
     private IEnumerable<Domain.Entities.Sole> soles = new List<Domain.Entities.Sole>();
     private MudTable<Domain.Entities.Sole> _table;
+    private CultureInfo _cultureInfo = CultureInfo.GetCultureInfo("hr-HR");
 
 
     private async Task OpenDialog(int id, string name)
