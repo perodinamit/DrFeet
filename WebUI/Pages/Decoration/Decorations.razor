@@ -2,6 +2,8 @@
 
 @using Domain
 @using Domain.Entities;
+@using Domain.Enums
+@using System.Globalization
 @using WebUI.Pages.Shared
 @inject Application.Services.DecorationService decorationService
 @inject Application.Services.MaterialService materialService
@@ -24,6 +26,13 @@
                 <MudSelectItem Value="@item.Id">@item.Description</MudSelectItem>
             }
         </MudSelect>
+        <MudSelect @bind-Value="decoration.Units" For="@(()=>decoration.Units)" FullWidth="true" Variant="MudBlazor.Variant.Text" Margin="Margin.Normal" Label="Unit">
+            @foreach (Units item in Enum.GetValues(typeof(Units)))
+            {
+                <MudSelectItem Value="@((Units?) item)">@EnumDisplay.GetDisplayText(@item)</MudSelectItem>
+            }
+        </MudSelect>
+        <MudNumericField @bind-Value="decoration.ExpensePerUnit" Format="N2" Culture="@_cultureInfo" Label="Expense per unit" HideSpinButtons="true" Variant="MudBlazor.Variant.Text"></MudNumericField>
         <MudSpacer />
         <MudButton Variant="MudBlazor.Variant.Filled" Color="Color.Success" OnClick="Save" Disabled="string.IsNullOrWhiteSpace(decoration.Description)">Save</MudButton>
     </MudCardContent>
@@ -40,13 +49,21 @@
         <MudTh hidden>Id</MudTh>
         <MudTh>Description</MudTh>
         <MudTh>Material</MudTh>
+        <MudTh>Price</MudTh>
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="Id" hidden>@context.Id</MudTd>
         <MudTd DataLabel="Description">@context.Description</MudTd>
         <MudTd DataLabel="Material">@context.Material.Description</MudTd>
-         
+        @if (context.ExpensePerUnit.HasValue && context.Units.HasValue)
+        {
+            <MudTd DataLabel="Price">@context.ExpensePerUnit € / @EnumDisplay.GetDisplayText(@context.Units)</MudTd>
+        }
+        else
+        {
+            <MudTd DataLabel="Price">-</MudTd>
+        }
         <MudTd DataLabel="">
             <MudFab @onclick="@(()=>OpenDialog(context.Id, context.Description))" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small"></MudFab>
 
@@ -66,6 +83,7 @@
     private IEnumerable<Domain.Entities.Decoration> decorations = new List<Domain.Entities.Decoration>();
     private List<Domain.Entities.Material> materials = new();
     private MudTable<Domain.Entities.Decoration> _table;
+    private CultureInfo _cultureInfo = CultureInfo.GetCultureInfo("hr-HR");
 
 
     protected override async Task OnInitializedAsync()

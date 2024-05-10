@@ -153,6 +153,11 @@ namespace Application.Services
             calcItems.Add(boxItem);
             calcItems.Add(boxTransportItem);
 
+            var sum = await context.CalculationItems.Where(x => x.CalculationId == calcId).SumAsync(x => x.Price);
+            var calc = context.Calculations.Where(x => x.Id == calcId).Select(x => x).First();
+            calc.Price = sum;
+
+
             return calcItems;
         }
 
@@ -200,7 +205,7 @@ namespace Application.Services
                 decorationItem.Normativ = "";
                 decorationItem.Color = string.Empty;
                 decorationItem.CalculationId = calcId;
-                await AddCalculationItem(decorationItem);
+                //await AddCalculationItem(decorationItem);
             }
             else
             {
@@ -212,8 +217,9 @@ namespace Application.Services
                 decorationItem.Normativ = "";
                 decorationItem.Color = decorationShoe.Material?.ColorType?.Name ?? "";
                 decorationItem.CalculationId = calcId;
-                await AddCalculationItem(decorationItem);
             }
+
+            await AddCalculationItem(decorationItem);
 
             return decorationItem;
         }
@@ -239,7 +245,14 @@ namespace Application.Services
 
             liningItem.Normativ = "";
             liningItem.CalculationId = calcId;
+
+            if (shoes.FirstOrDefault().Lining.ExpensePerUnit.HasValue && shoes.FirstOrDefault().LiningCoeficient.HasValue)
+            {
+                liningItem.Price = shoes.First().Lining.ExpensePerUnit.Value / shoes.First().LiningCoeficient.Value;
+            }
+
             await AddCalculationItem(liningItem);
+
             return liningItem;
         }
 
@@ -263,6 +276,12 @@ namespace Application.Services
             }
             soleItem.Normativ = "";
             soleItem.CalculationId = calcId;
+
+            if (shoes.FirstOrDefault().Sole.ExpensePerUnit.HasValue && shoes.FirstOrDefault().SoleCoeficient.HasValue)
+            {
+                soleItem.Price = shoes.First().Sole.ExpensePerUnit.Value / shoes.First().SoleCoeficient.Value;
+            }
+
             await AddCalculationItem(soleItem);
             return soleItem;
         }
@@ -288,6 +307,12 @@ namespace Application.Services
             }
             topItem.Normativ = "";
             topItem.CalculationId = calcId;
+
+            if (shoes.FirstOrDefault().Top.ExpensePerUnit.HasValue && shoes.FirstOrDefault().TopCoeficient.HasValue)
+            {
+                topItem.Price = shoes.First().Top.ExpensePerUnit.Value / shoes.First().TopCoeficient.Value;
+            }
+
             await AddCalculationItem(topItem);
             return topItem;
         }

@@ -13,39 +13,71 @@
         <MudTextField @bind-Value="newShoe.Name" Label="Name" />
         <MudTextField @bind-Value="newShoe.Description" Label="Description" />
 
+        @* ********** TOPS ********** *@
+        <div class="row">
+            <div class="col-md-6">
+                <MudSelect @bind-Value="newShoe.TopId" Label="Tops">
+                    <MudSelectItem Value="0" Disabled="true">Select top</MudSelectItem>
+                    @foreach (var item in tops)
+                    {
+                        <MudSelectItem Value="@item.Id">@item.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </div>
+            <div class="col-md-6">
+                <MudNumericField @bind-Value="newShoe.TopCoeficient" Format="N2" HideSpinButtons="true" Variant="MudBlazor.Variant.Text" Label="Top Coeficient" />
+            </div>
+        </div>
 
-        <MudSelect @bind-Value="newShoe.TopId" Label="Tops"> 
-            <MudSelectItem Value="0" Disabled="true">Select top</MudSelectItem>
-            @foreach (var item in tops)
-            {
-                <MudSelectItem Value="@item.Id">@item.Name</MudSelectItem>
-            }
-        </MudSelect>
+        @* ********** LININGS ********** *@
+        <div class="row">
+            <div class="col-md-6">
+                <MudSelect @bind-Value="newShoe.LiningId" Label="Lining">
+                    <MudSelectItem Value="0" Disabled="true">Select lining</MudSelectItem>
+                    @foreach (var item in linings)
+                    {
+                        <MudSelectItem Value="@item.Id">@item.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </div>
+            <div class="col-md-6">
+                <MudNumericField @bind-Value="newShoe.LiningCoeficient" Format="N2" HideSpinButtons="true" Variant="MudBlazor.Variant.Text" Label="Lining Coeficient" />
+            </div>
+        </div>
 
-        <MudSelect @bind-Value="newShoe.LiningId" Label="Lining">
-            <MudSelectItem Value="0" Disabled="true">Select lining</MudSelectItem>
-            @foreach (var item in linings)
-            {
-                <MudSelectItem Value="@item.Id">@item.Name</MudSelectItem>
-            }
-        </MudSelect>
+        @* ********** SOLES ********** *@
+        <div class="row">
+            <div class="col-md-6">
+                <MudSelect @bind-Value="newShoe.SoleId" Label="Sole">
+                    <MudSelectItem Value="0" Disabled="true">Select sole</MudSelectItem>
+                    @foreach (var item in soles)
+                    {
+                        <MudSelectItem Value="@item.Id">@item.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </div>
+            <div class="col-md-6">
+                <MudNumericField @bind-Value="newShoe.SoleCoeficient" Format="N2" HideSpinButtons="true" Variant="MudBlazor.Variant.Text" Label="Sole Coeficient" />
+            </div>
+        </div>
+        
+        @* ********** PURPOSES ********** *@
+        <div class="row">
+            <div class="col-md-6">
+                <MudSelect @bind-Value="newShoe.PurposeId" Label="Purpose">
+                    <MudSelectItem Value="0" Disabled="true">Select purpose</MudSelectItem>
+                    @foreach (var item in purposes)
+                    {
+                        <MudSelectItem Value="@item.Id">@item.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </div>
+            <div class="col-md-6">
+                <MudNumericField @bind-Value="newShoe.PurposeCoeficient" Format="N2" HideSpinButtons="true" Variant="MudBlazor.Variant.Text" Label="Purpose Coeficient" />
+            </div>
+        </div>
 
-        <MudSelect @bind-Value="newShoe.SoleId" Label="Sole">
-            <MudSelectItem Value="0" Disabled="true">Select sole</MudSelectItem>
-            @foreach (var item in soles)
-            {
-                <MudSelectItem Value="@item.Id">@item.Name</MudSelectItem>
-            }
-        </MudSelect>
-
-        <MudSelect @bind-Value="newShoe.PurposeId" Label="Purpose">
-            <MudSelectItem Value="0" Disabled="true">Select purpose</MudSelectItem>
-            @foreach (var item in purposes)
-            {
-                <MudSelectItem Value="@item.Id">@item.Name</MudSelectItem>
-            }
-        </MudSelect>
-
+        @* ********** COLORS ********** *@
         <MudSelect @bind-Value="newShoe.ColorTypeId" Label="Color Type">
             <MudSelectItem Value="0" Disabled="true">Select color</MudSelectItem>
             @foreach (var item in colorTypes)
@@ -60,6 +92,7 @@
         <MudButton Color="Color.Primary" OnClick="Submit">Add Shoe</MudButton>
     </DialogActions>
 </MudDialog>
+
 
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
@@ -82,9 +115,9 @@
 
     async void Submit()
     {
-        
+
         bool success = await shoeService.AddShoe(newShoe);
-        
+
         MudDialog.Close(DialogResult.Ok(success));
     }
 
